@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-test/
+out/
+.vscode-test/
+*.vsix
+.env
+.env.local
+.DS_Store
+.playwright-mcp/

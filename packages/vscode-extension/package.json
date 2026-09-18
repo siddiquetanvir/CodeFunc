@@ -1,0 +1,153 @@
+{
+  "name": "codefunc-vscode",
+  "displayName": "CodeFunc - File Overview",
+  "description": "Non-intrusive, zero-click file state overview powered by Gemini AI and local static extraction",
+  "version": "0.1.0",
+  "publisher": "TanvirSdq",
+  "icon": "media/logo.png",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/siddiquetanvir/CodeFunc"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "file overview",
+    "codelens",
+    "ai documentation",
+    "gemini",
+    "summary"
+  ],
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/extension.js",
+    "media/logo.png",
+    "README.md",
+    "LICENSE"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:go",
+    "onLanguage:rust",
+    "onLanguage:java",
+    "onLanguage:c",
+    "onLanguage:cpp",
+    "onLanguage:csharp"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codefunc.setApiKey",
+        "title": "CodeFunc: Set AI API Key (OpenRouter, Groq, Gemini, or Anthropic)",
+        "category": "CodeFunc"
+      },
+      {
+        "command": "codefunc.clearApiKey",
+        "title": "CodeFunc: Clear AI API Key",
+        "category": "CodeFunc"
+      },
+      {
+        "command": "codefunc.refreshSummary",
+        "title": "CodeFunc: Refresh File Summary",
+        "category": "CodeFunc"
+      },
+      {
+        "command": "codefunc.clearCache",
+        "title": "CodeFunc: Clear Summary Cache",
+        "category": "CodeFunc"
+      },
+      {
+        "command": "codefunc.showDetails",
+        "title": "CodeFunc: Show File Details",
+        "category": "CodeFunc"
+      },
+      {
+        "command": "codefunc.openDetailedOverview",
+        "title": "CodeFunc: Open Deep Architectural Overview",
+        "category": "CodeFunc"
+      }
+    ],
+    "configuration": {
+      "title": "CodeFunc",
+      "properties": {
+        "codefunc.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable CodeFunc file overview CodeLens."
+        },
+        "codefunc.provider": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "openrouter",
+            "groq",
+            "gemini",
+            "anthropic"
+          ],
+          "description": "AI Provider to use. 'auto' automatically detects based on your API key format."
+        },
+        "codefunc.model": {
+          "type": "string",
+          "default": "",
+          "description": "Optional model override (e.g. 'google/gemini-2.5-flash' on OpenRouter, 'llama-3.3-70b-versatile' on Groq, 'gemini-flash-latest' on Gemini, or 'claude-3-5-haiku-latest' on Anthropic). Leave empty for auto-defaults."
+        },
+        "codefunc.persona": {
+          "type": "string",
+          "default": "General Developer",
+          "enum": [
+            "General Developer",
+            "Security Auditor",
+            "Performance Expert"
+          ],
+          "description": "Analysis perspective used by the AI when generating file summaries."
+        },
+        "codefunc.showSideEffects": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display detected I/O and side effects in the CodeLens header."
+        },
+        "codefunc.maxCodeLensLength": {
+          "type": "number",
+          "default": 70,
+          "description": "Maximum character width of each CodeLens item before wrapping into stacked lines so it never exceeds your editor width."
+        },
+        "codefunc.ignoreMinified": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically skip summarizing minified files (*.min.*), locks, and map files to save tokens."
+        },
+        "codefunc.maxFileLines": {
+          "type": "number",
+          "default": 8000,
+          "description": "Maximum line count of files to automatically summarize. Set to 0 for unlimited."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "build": "tsc -b",
+    "package": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "codefunc-monorepo",
+  "private": true,
+  "description": "CodeFunc: Non-intrusive file overview for VS Code and browsers",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "compile": "npm run build --workspace=packages/core && npm run compile --workspace=packages/vscode-extension",
+    "watch": "npm run watch --workspace=packages/vscode-extension",
+    "test": "npm run test --workspace=packages/core"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
