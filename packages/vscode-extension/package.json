@@ -2,7 +2,7 @@
   "name": "codefunc-vscode",
   "displayName": "CodeFunc - File Overview",
   "description": "Non-intrusive, zero-click file state overview powered by Gemini AI and local static extraction",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "TanvirSdq",
   "icon": "media/logo.png",
   "license": "AGPL-3.0-only",
