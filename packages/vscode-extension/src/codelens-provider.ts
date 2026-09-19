@@ -41,28 +41,37 @@ export class CodeFuncLensProvider implements vscode.CodeLensProvider {
       return [];
     }
 
-    const fsPath = document.uri.fsPath.toLowerCase();
+    const normalizedPath = document.uri.fsPath.replace(/\\/g, '/').toLowerCase();
 
-    // Smart Ignore: check minified / generated / oversized files
+    // Smart Ignore: check minified / generated / binary / oversized files
     const ignoreMinified = config.get<boolean>('ignoreMinified', true);
     if (ignoreMinified) {
       if (
-        fsPath.endsWith('.min.js') ||
-        fsPath.endsWith('.min.css') ||
-        fsPath.endsWith('.map') ||
-        fsPath.endsWith('package-lock.json') ||
-        fsPath.endsWith('yarn.lock') ||
-        fsPath.endsWith('pnpm-lock.yaml') ||
-        fsPath.endsWith('.png') ||
-        fsPath.endsWith('.jpg') ||
-        fsPath.endsWith('.jpeg') ||
-        fsPath.endsWith('.gif') ||
-        fsPath.endsWith('.ico') ||
-        fsPath.endsWith('.svg') ||
-        fsPath.endsWith('.wasm') ||
-        fsPath.endsWith('.pyc') ||
-        fsPath.includes('/.git/') ||
-        fsPath.includes('/node_modules/')
+        normalizedPath.endsWith('.min.js') ||
+        normalizedPath.endsWith('.min.css') ||
+        normalizedPath.endsWith('.map') ||
+        normalizedPath.endsWith('package-lock.json') ||
+        normalizedPath.endsWith('yarn.lock') ||
+        normalizedPath.endsWith('pnpm-lock.yaml') ||
+        normalizedPath.endsWith('.png') ||
+        normalizedPath.endsWith('.jpg') ||
+        normalizedPath.endsWith('.jpeg') ||
+        normalizedPath.endsWith('.gif') ||
+        normalizedPath.endsWith('.ico') ||
+        normalizedPath.endsWith('.svg') ||
+        normalizedPath.endsWith('.webp') ||
+        normalizedPath.endsWith('.wasm') ||
+        normalizedPath.endsWith('.pyc') ||
+        normalizedPath.endsWith('.zip') ||
+        normalizedPath.endsWith('.tar') ||
+        normalizedPath.endsWith('.gz') ||
+        normalizedPath.endsWith('.pdf') ||
+        normalizedPath.endsWith('.woff') ||
+        normalizedPath.endsWith('.woff2') ||
+        normalizedPath.endsWith('.ttf') ||
+        normalizedPath.endsWith('.eot') ||
+        normalizedPath.includes('/.git/') ||
+        normalizedPath.includes('/node_modules/')
       ) {
         return [];
       }

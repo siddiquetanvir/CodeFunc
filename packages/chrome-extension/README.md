@@ -77,3 +77,4 @@ Click the **CodeFunc icon** in your browser toolbar to open the settings popup:
 
 ## 📄 License
 GNU Affero General Public License v3.0 (AGPLv3) © 2026 Tanvir Siddique. All rights reserved.
+

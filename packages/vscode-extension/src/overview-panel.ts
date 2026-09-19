@@ -106,6 +106,7 @@ export class CodeFuncOverviewPanel {
     const deps = (summary?.dependencies || []).filter((d) => d && d !== 'None detected');
     const ios = (summary?.sideEffects || []).filter((s) => s && s !== 'None detected');
     const mechanisms = (summary?.keyMechanisms || []).filter((m) => m);
+    const errorInfo = summary?.error ? this._formatHumanError(summary.error) : null;
 
     // SVG Octicons (crisp, modern vector graphics matching Chrome extension)
     const sparkleSvg = `<svg class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M7.53 1.282a.5.5 0 0 1 .94 0l.91 2.825a2.5 2.5 0 0 0 1.624 1.624l2.825.91a.5.5 0 0 1 0 .94l-2.825.91a2.5 2.5 0 0 0-1.624 1.624l-.91 2.825a.5.5 0 0 1-.94 0l-.91-2.825a2.5 2.5 0 0 0-1.624-1.624l-2.825-.91a.5.5 0 0 1 0-.94l2.825-.91a2.5 2.5 0 0 0 1.624-1.624l.91-2.825Z"></path></svg>`;
@@ -271,23 +272,44 @@ export class CodeFuncOverviewPanel {
       color: var(--accent-blue);
     }
 
-    /* API Key Warning / Prompt */
+    /* API Key Warning / Prompt Banner */
     .banner-api {
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px solid rgba(245, 158, 11, 0.3);
       border-radius: 8px;
-      padding: 14px 18px;
+      padding: 16px 18px;
       margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .banner-api-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    .banner-api-text {
+    .banner-api-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .banner-api-msg {
       font-size: 13px;
-      color: #fbbf24;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .banner-api-tip {
+      font-size: 12px;
       line-height: 1.4;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Actions Bar */
@@ -309,6 +331,8 @@ export class CodeFuncOverviewPanel {
       font-size: 12.5px;
       font-weight: 500;
       cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
       transition: all 0.15s ease;
     }
 
@@ -339,24 +363,40 @@ export class CodeFuncOverviewPanel {
     </div>
 
     ${
-      summary?.error
-        ? `<div class="banner-api" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4);">
-            <div class="banner-api-text" style="color: #f87171;">
-              <strong>⚠️ AI Connection Issue:</strong> ${summary.error}<br>
-              <span style="opacity: 0.85; font-size: 12px;">Displaying local structural extraction instead. Check your API key or provider.</span>
+      errorInfo
+        ? `<div class="banner-api" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35);">
+            <div class="banner-api-header">
+              <span class="banner-api-title" style="color: #f87171;">
+                ${errorInfo.title}
+              </span>
+              <button class="btn btn-primary" onclick="sendMessage('setApiKey')">
+                ${keySvg} Switch / Update Key
+              </button>
             </div>
-            <button class="btn btn-primary" onclick="sendMessage('setApiKey')">
-              ${keySvg} Re-enter Key
-            </button>
+            <p class="banner-api-msg" style="color: #e6edf3;">
+              ${errorInfo.message}
+            </p>
+            ${
+              errorInfo.tip
+                ? `<div class="banner-api-tip" style="color: #fbbf24;">
+                    ${errorInfo.tip}
+                  </div>`
+                : ''
+            }
           </div>`
         : !hasApiKey
-        ? `<div class="banner-api">
-            <div class="banner-api-text">
-              <strong>💡 Using local static inspection.</strong> Connect a Gemini, Groq, or OpenRouter API Key for deep automated architectural reasoning.
+        ? `<div class="banner-api" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3);">
+            <div class="banner-api-header">
+              <span class="banner-api-title" style="color: #fbbf24;">
+                💡 Using Local Static Inspection
+              </span>
+              <button class="btn btn-primary" onclick="sendMessage('setApiKey')">
+                ${keySvg} Set API Key
+              </button>
             </div>
-            <button class="btn btn-primary" onclick="sendMessage('setApiKey')">
-              ${keySvg} Set API Key
-            </button>
+            <p class="banner-api-msg" style="color: #c9d1d9;">
+              Connect a Gemini, Groq, or OpenRouter API Key for automated deep architectural reasoning.
+            </p>
           </div>`
         : ''
     }
@@ -421,4 +461,58 @@ export class CodeFuncOverviewPanel {
 </body>
 </html>`;
   }
+
+  private _formatHumanError(rawError: string): { title: string; message: string; tip?: string } {
+    try {
+      let parsed: any = null;
+      if (rawError.includes('{') && rawError.includes('}')) {
+        const start = rawError.indexOf('{');
+        const end = rawError.lastIndexOf('}') + 1;
+        parsed = JSON.parse(rawError.slice(start, end));
+      }
+
+      const errObj = parsed?.error || parsed;
+      const code = errObj?.code || errObj?.status;
+      const msg: string = errObj?.message || rawError;
+
+      if (code === 429 || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('resource_exhausted')) {
+        const retryMatch = /retry in ([\d.]+s?)/i.exec(msg);
+        const retryText = retryMatch ? ` (retry in ${retryMatch[1]})` : '';
+        return {
+          title: '⚠️ Gemini Rate Limit Exceeded (429)',
+          message: `Google Gemini Free Tier allows 5 requests per minute${retryText}. Opening multiple files quickly exhausts this quota.`,
+          tip: '💡 Tip: To avoid rate limits, click "Switch / Update Key" and use an OpenRouter or Groq key (free 30 req/min)!',
+        };
+      }
+
+      if (code === 404 || msg.toLowerCase().includes('not found')) {
+        return {
+          title: '⚠️ Model Not Available',
+          message: msg.slice(0, 160),
+          tip: 'Check your model configuration in Settings or leave it empty for auto-defaults.',
+        };
+      }
+
+      if (code === 401 || code === 403 || msg.toLowerCase().includes('api_key_invalid')) {
+        return {
+          title: '⚠️ Invalid API Key',
+          message: 'The API key provided was not accepted by the provider.',
+          tip: 'Click "Switch / Update Key" to enter a valid API key.',
+        };
+      }
+
+      return {
+        title: '⚠️ AI Connection Issue',
+        message: msg.length > 200 ? msg.slice(0, 200) + '...' : msg,
+        tip: 'Displaying local structural extraction instead.',
+      };
+    } catch {
+      return {
+        title: '⚠️ AI Connection Issue',
+        message: rawError.length > 200 ? rawError.slice(0, 200) + '...' : rawError,
+        tip: 'Displaying local structural extraction instead.',
+      };
+    }
+  }
 }
+
