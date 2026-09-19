@@ -46,7 +46,7 @@ export function detectProvider(apiKey: string, specifiedProvider?: string): 'gem
   if (key.startsWith('gsk_')) {
     return 'groq';
   }
-  if (key.startsWith('sk-or-')) {
+  if (key.startsWith('sk-or-') || key.startsWith('sk-')) {
     return 'openrouter';
   }
   return 'gemini';
@@ -68,7 +68,7 @@ function getPersonaInstruction(persona?: string): string {
  * Uses cache if provided to avoid repeated API calls for unchanged files.
  */
 export async function summarizeFile(options: SummarizeOptions): Promise<FileSummary> {
-  const { code, languageId, filePath, apiKey, model = 'gemini-flash-latest', cache, persona } = options;
+  const { code, languageId, filePath, apiKey, model = 'gemini-2.5-flash', cache, persona } = options;
 
   // 1. Check cache first (incorporate persona into hash key if set)
   const personaSuffix = persona ? `:${persona}` : '';
@@ -120,7 +120,7 @@ Return a JSON object conforming strictly to the requested schema.
     if (resolvedProvider === 'groq') {
       summary = await callOpenAICompatible(
         apiKey,
-        model && model !== 'gemini-flash-latest' ? model : 'llama-3.3-70b-versatile',
+        model && model !== 'gemini-2.5-flash' && model !== 'gemini-flash-latest' ? model : 'llama-3.3-70b-versatile',
         'https://api.groq.com/openai/v1/chat/completions',
         prompt,
         metadata
@@ -128,7 +128,7 @@ Return a JSON object conforming strictly to the requested schema.
     } else if (resolvedProvider === 'openrouter') {
       summary = await callOpenAICompatible(
         apiKey,
-        model && model !== 'gemini-flash-latest' ? model : 'google/gemini-2.5-flash',
+        model && model !== 'gemini-2.5-flash' && model !== 'gemini-flash-latest' ? model : 'google/gemini-2.5-flash',
         'https://openrouter.ai/api/v1/chat/completions',
         prompt,
         metadata,
@@ -140,7 +140,7 @@ Return a JSON object conforming strictly to the requested schema.
     } else if (resolvedProvider === 'anthropic') {
       summary = await callAnthropicNative(
         apiKey,
-        model && model !== 'gemini-flash-latest' ? model : 'claude-3-5-haiku-latest',
+        model && model !== 'gemini-2.5-flash' && model !== 'gemini-flash-latest' ? model : 'claude-3-5-haiku-latest',
         prompt,
         metadata
       );
@@ -158,8 +158,12 @@ Return a JSON object conforming strictly to the requested schema.
 
     return summary;
   } catch (err: any) {
+    console.error('[CodeFunc] LLM API Call failed:', err);
     // Graceful intelligent fallback to static metadata on network/API failure
-    return generateSmartLocalSummary(metadata, languageId, filePath);
+    const fallback = generateSmartLocalSummary(metadata, languageId, filePath);
+    fallback.error = err?.message || String(err);
+    fallback.isLocalFallback = true;
+    return fallback;
   }
 }
 
@@ -314,22 +318,19 @@ function generateSmartLocalSummary(
     role = baseName ? `Module logic for ${baseName}` : 'Module definitions and program logic';
   }
 
-  // Generate detailed overview
+  // Generate clean, readable local detailed summary
   const parts: string[] = [];
   if (role) {
-    parts.push(`Primary Role: ${role}.`);
-  }
-  if (mechanisms.length > 0) {
-    parts.push(`Identified logic & patterns: ${mechanisms.join(', ')}.`);
+    parts.push(role.endsWith('.') ? role : `${role}.`);
   }
   if (metadata.signatures.length > 0) {
-    parts.push(`Defined procedures: ${metadata.signatures.join(', ')}.`);
-  }
-  if (metadata.dependencies.length > 0) {
-    parts.push(`Dependencies: ${metadata.dependencies.join(', ')}.`);
+    const cleanSigs = metadata.signatures
+      .slice(0, 4)
+      .map((s) => s.replace(/^def\s+/, '').replace(/^function\s+/, '').replace(/\(.*$/, '()'));
+    parts.push(`Exposes key procedures: ${cleanSigs.join(', ')}.`);
   }
   if (metadata.sideEffects.length > 0) {
-    parts.push(`I/O & Side-effects: ${metadata.sideEffects.join('; ')}.`);
+    parts.push(`Executes operations with ${metadata.sideEffects.slice(0, 2).join(' and ')}.`);
   }
 
   return {
@@ -350,45 +351,44 @@ async function callGemini(
   fallbackMetadata: ExtractedMetadata
 ): Promise<FileSummary> {
   const client = new GoogleGenAI({ apiKey });
+  const targetModel = !model || model === 'gemini-flash-latest' ? 'gemini-2.5-flash' : model;
 
-  // Attempt 1: Interactions API with response_format
+  // Attempt 1: generateContent with structured JSON schema
   try {
-    const interaction = await client.interactions.create({
-      model,
-      input: prompt,
-      response_format: [
-        {
-          type: 'text',
-          mime_type: 'application/json',
-          schema: SUMMARY_JSON_SCHEMA,
-        },
-      ],
+    const response = await client.models.generateContent({
+      model: targetModel,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: SUMMARY_JSON_SCHEMA as any,
+      },
     });
 
-    if (interaction.output_text) {
-      const parsed = JSON.parse(interaction.output_text);
+    if (response.text) {
+      const parsed = JSON.parse(response.text);
       return sanitizeSummary(parsed, fallbackMetadata);
     }
-  } catch (interactionError) {
-    // Attempt 2: Fallback to generateContent API
-    try {
-      const response = await client.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: SUMMARY_JSON_SCHEMA as any,
-        },
-      });
-
-      if (response.text) {
-        const parsed = JSON.parse(response.text);
-        return sanitizeSummary(parsed, fallbackMetadata);
+  } catch (primaryError: any) {
+    // Attempt 2: Fallback to gemini-1.5-flash if gemini-2.5-flash fails on user's tier
+    if (targetModel !== 'gemini-1.5-flash') {
+      try {
+        const fallbackResp = await client.models.generateContent({
+          model: 'gemini-1.5-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: SUMMARY_JSON_SCHEMA as any,
+          },
+        });
+        if (fallbackResp.text) {
+          const parsed = JSON.parse(fallbackResp.text);
+          return sanitizeSummary(parsed, fallbackMetadata);
+        }
+      } catch {
+        throw primaryError;
       }
-    } catch (genError) {
-      // Re-throw to hit the graceful fallback in summarizeFile
-      throw genError;
     }
+    throw primaryError;
   }
 
   throw new Error('No output returned from Gemini API');

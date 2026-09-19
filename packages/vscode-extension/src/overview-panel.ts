@@ -339,7 +339,17 @@ export class CodeFuncOverviewPanel {
     </div>
 
     ${
-      !hasApiKey
+      summary?.error
+        ? `<div class="banner-api" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4);">
+            <div class="banner-api-text" style="color: #f87171;">
+              <strong>⚠️ AI Connection Issue:</strong> ${summary.error}<br>
+              <span style="opacity: 0.85; font-size: 12px;">Displaying local structural extraction instead. Check your API key or provider.</span>
+            </div>
+            <button class="btn btn-primary" onclick="sendMessage('setApiKey')">
+              ${keySvg} Re-enter Key
+            </button>
+          </div>`
+        : !hasApiKey
         ? `<div class="banner-api">
             <div class="banner-api-text">
               <strong>💡 Using local static inspection.</strong> Connect a Gemini, Groq, or OpenRouter API Key for deep automated architectural reasoning.

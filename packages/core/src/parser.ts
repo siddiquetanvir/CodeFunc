@@ -85,7 +85,11 @@ function detectPatterns(code: string): string[] {
     patterns.push('Data Analytics & Visualization Pipeline');
   }
   if (/\b(?:FastAPI|from\s+fastapi)\b/.test(code)) {
-    patterns.push('FastAPI REST API');
+    if (/\b(?:OAuth2|HTTPBearer|jwt|bcrypt|passlib|create_access_token)\b/.test(code)) {
+      patterns.push('FastAPI Authentication & Security');
+    } else {
+      patterns.push('FastAPI REST API');
+    }
   }
   if (/\b(?:Flask|from\s+flask)\b/.test(code)) {
     patterns.push('Flask Web Service');
@@ -97,10 +101,28 @@ function detectPatterns(code: string): string[] {
 }
 
 function extractLeadComment(code: string): string | undefined {
-  const lines = code.split('\n').slice(0, 30);
+  // Only inspect top-of-file comments before code or import statements
+  const lines = code.split('\n').slice(0, 15);
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line) continue;
+
+    // If we encounter code or imports, the file header comment area has ended!
+    if (
+      line.startsWith('import ') ||
+      line.startsWith('from ') ||
+      line.startsWith('package ') ||
+      line.startsWith('def ') ||
+      line.startsWith('class ') ||
+      line.startsWith('export ') ||
+      line.startsWith('const ') ||
+      line.startsWith('let ') ||
+      line.startsWith('var ') ||
+      line.startsWith('#include')
+    ) {
+      break;
+    }
+
     if (line.startsWith('//') || line.startsWith('#') || line.startsWith('/*') || line.startsWith('*')) {
       const cleaned = line
         .replace(/^\/\/\s*|^\/\*\s*|^\*\s*|^#\s*/, '')
