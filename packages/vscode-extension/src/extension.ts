@@ -11,20 +11,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const cache = new WorkspaceStateCache(context.workspaceState);
   const provider = new CodeFuncLensProvider(secretManager, cache);
 
-  // Supported languages for CodeLens
-  const selector: vscode.DocumentSelector = [
-    { scheme: 'file', language: 'python' },
-    { scheme: 'file', language: 'javascript' },
-    { scheme: 'file', language: 'typescript' },
-    { scheme: 'file', language: 'javascriptreact' },
-    { scheme: 'file', language: 'typescriptreact' },
-    { scheme: 'file', language: 'go' },
-    { scheme: 'file', language: 'rust' },
-    { scheme: 'file', language: 'java' },
-    { scheme: 'file', language: 'c' },
-    { scheme: 'file', language: 'cpp' },
-    { scheme: 'file', language: 'csharp' },
-  ];
+  // Support all file types in workspace (Dockerfiles, YAML, Shell, JSON, TOML, Python, JS/TS, etc.)
+  const selector: vscode.DocumentSelector = [{ scheme: 'file' }];
 
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider(selector, provider)

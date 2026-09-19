@@ -89,5 +89,45 @@ func main() {
     assert.ok(meta.sideEffects.includes('file system I/O'), 'Should detect file system I/O');
     assert.ok(meta.sideEffects.includes('HTTP network calls'), 'Should detect HTTP calls');
   });
+
+  test('extractMetadata correctly extracts Dockerfile base images, ports, and commands', () => {
+    const dockerCode = `
+FROM python:3.11-slim AS builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+`;
+
+    const meta = extractMetadata(dockerCode, 'dockerfile');
+    assert.ok(meta.dependencies.includes('python:3.11-slim'), 'Should extract base image');
+    assert.ok(meta.sideEffects.some((s) => s.includes('8000')), 'Should identify exposed port 8000');
+    assert.ok(meta.signatures.some((s) => s.includes('builder')), 'Should detect multi-stage name builder');
+    assert.ok(meta.patterns?.includes('Docker Container Build'), 'Should detect Docker Container Build pattern');
+  });
+
+  test('extractMetadata correctly extracts Docker Compose services and ports from YAML', () => {
+    const yamlCode = `
+version: '3.8'
+services:
+  web:
+    image: node:20-alpine
+    ports:
+      - "3000:3000"
+  db:
+    image: postgres:15
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+`;
+
+    const meta = extractMetadata(yamlCode, 'yaml');
+    assert.ok(meta.dependencies.includes('node:20-alpine'), 'Should extract node image');
+    assert.ok(meta.dependencies.includes('postgres:15'), 'Should extract postgres image');
+    assert.ok(meta.signatures.some((s) => s.includes('web')), 'Should identify web service');
+    assert.ok(meta.signatures.some((s) => s.includes('db')), 'Should identify db service');
+    assert.ok(meta.sideEffects.some((s) => s.includes('3000:3000')), 'Should detect port binding');
+    assert.ok(meta.patterns?.includes('Docker Compose Multi-Service'), 'Should detect Docker Compose pattern');
+  });
 });
 

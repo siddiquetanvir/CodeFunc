@@ -289,13 +289,99 @@ function generateSmartLocalSummary(
   languageId?: string,
   filePath?: string
 ): FileSummary {
+  const baseName = filePath ? filePath.split('/').pop() || '' : '';
+  const lowerBase = baseName.toLowerCase();
+  const lowerLang = (languageId || '').toLowerCase();
   let role = '';
-  const mechanisms = metadata.patterns || [];
+  const mechanisms = [...(metadata.patterns || [])];
+  const parts: string[] = [];
+
+  const isDockerfile = lowerLang === 'dockerfile' || lowerBase.includes('dockerfile') || mechanisms.includes('Docker Container Build');
+  const isCompose = lowerBase.includes('docker-compose') || lowerBase.includes('compose.yaml') || lowerBase.includes('compose.yml') || mechanisms.includes('Docker Compose Multi-Service');
+  const isWorkflow = (lowerLang === 'yaml' || lowerLang === 'yml') && (mechanisms.includes('CI/CD Workflow Pipeline') || (filePath ? filePath.includes('.github/workflows') : false));
+  const isShell = lowerLang === 'shellscript' || lowerLang === 'bash' || lowerLang === 'sh' || lowerLang === 'zsh';
+  const isJson = lowerLang === 'json' || lowerLang === 'jsonc';
+  const isSql = lowerLang === 'sql' || mechanisms.includes('SQL Database Operations');
 
   if (metadata.leadComment) {
     role = metadata.leadComment;
     if (metadata.signatures.includes('main') && !role.toLowerCase().includes('main')) {
       role += ' (main)';
+    }
+  } else if (isDockerfile) {
+    const baseImg = metadata.dependencies[0];
+    const stages = metadata.signatures.filter((s) => s.startsWith('Stage: ')).map((s) => s.replace('Stage: ', ''));
+    const entry = metadata.signatures.find((s) => s.startsWith('Entry: '))?.replace('Entry: ', '');
+
+    role = baseImg ? `Docker container build based on ${baseImg}` : 'Docker container build specification';
+    parts.push(role + '.');
+    if (stages.length > 0) {
+      parts.push(`Uses multi-stage build pipeline (${stages.join(' -> ')}).`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(`Configures ${metadata.sideEffects.join(' and ')}.`);
+    }
+    if (entry) {
+      parts.push(`Executes "${entry}" at container launch.`);
+    }
+  } else if (isCompose) {
+    const services = metadata.signatures.filter((s) => s.startsWith('Service: ')).map((s) => s.replace('Service: ', ''));
+    if (services.length > 0) {
+      role = `Docker Compose orchestrating ${services.length} services (${services.slice(0, 3).join(', ')})`;
+    } else {
+      role = 'Docker Compose multi-service container orchestration';
+    }
+    parts.push(role + '.');
+    if (metadata.dependencies.length > 0) {
+      parts.push(`Spins up images: ${metadata.dependencies.slice(0, 4).join(', ')}.`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(`Configures ${metadata.sideEffects.slice(0, 3).join(' and ')}.`);
+    }
+  } else if (isWorkflow) {
+    role = 'CI/CD automated pipeline workflow';
+    parts.push('Automates continuous integration and delivery pipeline.');
+    if (metadata.dependencies.length > 0) {
+      parts.push(`Coordinates actions: ${metadata.dependencies.slice(0, 4).join(', ')}.`);
+    }
+  } else if (isShell) {
+    const tools = metadata.dependencies.slice(0, 4);
+    role = tools.length > 0 ? `Shell script coordinating ${tools.join(', ')}` : 'Shell automation and execution script';
+    parts.push(role + '.');
+    if (metadata.signatures.length > 0) {
+      parts.push(`Defines functions: ${metadata.signatures.slice(0, 4).join(', ')}.`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(`Performs ${metadata.sideEffects.join(' and ')}.`);
+    }
+  } else if (isJson) {
+    if (lowerBase === 'package.json') {
+      const pkgName = metadata.signatures.find((s) => s.startsWith('Package: '))?.replace('Package: ', '');
+      role = pkgName ? `Package manifest for ${pkgName}` : 'Node.js package manifest and dependency configuration';
+      parts.push(role + '.');
+      const scripts = metadata.signatures.filter((s) => s.startsWith('npm run ')).map((s) => s.replace('npm run ', ''));
+      if (scripts.length > 0) {
+        parts.push(`Defines scripts: ${scripts.slice(0, 5).join(', ')}.`);
+      }
+      if (metadata.dependencies.length > 0) {
+        parts.push(`Declares key dependencies: ${metadata.dependencies.slice(0, 6).join(', ')}.`);
+      }
+    } else if (lowerBase === 'tsconfig.json') {
+      role = 'TypeScript compiler and project configuration';
+      parts.push('Configures TypeScript compilation settings, module resolution, and build targets.');
+    } else {
+      role = `JSON configuration schema (${baseName || 'config'})`;
+      parts.push(`Structured data and environment configuration for ${baseName || 'project'}.`);
+    }
+  } else if (isSql) {
+    const tables = metadata.dependencies.slice(0, 4);
+    role = tables.length > 0 ? `SQL queries and operations on ${tables.join(', ')}` : 'SQL database schema and data operations';
+    parts.push(role + '.');
+    if (metadata.signatures.length > 0) {
+      parts.push(`Executes DDL: ${metadata.signatures.slice(0, 3).join(', ')}.`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(`Handles ${metadata.sideEffects.join(' and ')}.`);
     }
   } else if (mechanisms.length > 0) {
     role = mechanisms.slice(0, 2).join(' & ');
@@ -314,23 +400,23 @@ function generateSmartLocalSummary(
   } else if (metadata.dependencies.length > 0) {
     role = `Module configuring ${metadata.dependencies.slice(0, 3).join(', ')}`;
   } else {
-    const baseName = filePath ? filePath.split('/').pop() : '';
     role = baseName ? `Module logic for ${baseName}` : 'Module definitions and program logic';
   }
 
-  // Generate clean, readable local detailed summary
-  const parts: string[] = [];
-  if (role) {
-    parts.push(role.endsWith('.') ? role : `${role}.`);
-  }
-  if (metadata.signatures.length > 0) {
-    const cleanSigs = metadata.signatures
-      .slice(0, 4)
-      .map((s) => s.replace(/^def\s+/, '').replace(/^function\s+/, '').replace(/\(.*$/, '()'));
-    parts.push(`Exposes key procedures: ${cleanSigs.join(', ')}.`);
-  }
-  if (metadata.sideEffects.length > 0) {
-    parts.push(`Executes operations with ${metadata.sideEffects.slice(0, 2).join(' and ')}.`);
+  // Fallback for standard programming files if parts is still empty
+  if (parts.length === 0) {
+    if (role) {
+      parts.push(role.endsWith('.') ? role : `${role}.`);
+    }
+    if (metadata.signatures.length > 0) {
+      const cleanSigs = metadata.signatures
+        .slice(0, 4)
+        .map((s) => s.replace(/^def\s+/, '').replace(/^function\s+/, '').replace(/\(.*$/, '()'));
+      parts.push(`Exposes key elements: ${cleanSigs.join(', ')}.`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(`Executes operations with ${metadata.sideEffects.slice(0, 2).join(' and ')}.`);
+    }
   }
 
   return {

@@ -63,5 +63,50 @@ def calculate_pi():
     assert.strictEqual(detectProvider('any-key', 'anthropic'), 'anthropic');
     assert.strictEqual(detectProvider('any-key', 'groq'), 'groq');
   });
+
+  test('summarizeFile produces intelligent architectural summaries for Dockerfile', async () => {
+    const dockerfile = `
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+`;
+    const summary = await summarizeFile({
+      code: dockerfile,
+      languageId: 'dockerfile',
+      filePath: '/Users/test/backend/Dockerfile',
+      apiKey: '',
+    });
+
+    assert.ok(summary.coreRole.includes('python:3.10-slim'));
+    assert.ok(summary.detailedSummary?.includes('uvicorn app.main:app'));
+    assert.ok(summary.sideEffects.some((s) => s.includes('8000')));
+    assert.ok(summary.keyMechanisms?.includes('Docker Container Build'));
+  });
+
+  test('summarizeFile produces intelligent architectural summaries for docker-compose.yml', async () => {
+    const compose = `
+services:
+  web:
+    image: python:3.10-slim
+    ports:
+      - "8000:8000"
+  db:
+    image: postgres:15
+`;
+    const summary = await summarizeFile({
+      code: compose,
+      languageId: 'yaml',
+      filePath: '/Users/test/docker-compose.yml',
+      apiKey: '',
+    });
+
+    assert.ok(summary.coreRole.includes('services'));
+    assert.ok(summary.detailedSummary?.includes('web') || summary.detailedSummary?.includes('postgres:15'));
+    assert.ok(summary.keyMechanisms?.includes('Docker Compose Multi-Service'));
+  });
 });
 

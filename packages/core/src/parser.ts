@@ -23,6 +23,30 @@ export function extractMetadata(code: string, languageId?: string): ExtractedMet
     case 'tsx':
       result = parseJavaScript(code);
       break;
+    case 'dockerfile':
+    case 'docker':
+      result = parseDocker(code);
+      break;
+    case 'yaml':
+    case 'yml':
+      result = parseYaml(code);
+      break;
+    case 'shellscript':
+    case 'bash':
+    case 'sh':
+    case 'zsh':
+      result = parseShell(code);
+      break;
+    case 'json':
+    case 'jsonc':
+      result = parseJson(code);
+      break;
+    case 'toml':
+      result = parseToml(code);
+      break;
+    case 'sql':
+      result = parseSql(code);
+      break;
     case 'go':
       result = parseGo(code);
       break;
@@ -38,7 +62,14 @@ export function extractMetadata(code: string, languageId?: string): ExtractedMet
       result = parseCStyle(code);
       break;
     default:
-      result = parseGeneric(code);
+      // Auto-detect based on content
+      if (/^\s*FROM\s+[^\s]+/im.test(code)) {
+        result = parseDocker(code);
+      } else if (/^\s*#!\/(?:usr\/)?bin\/(?:env\s+)?(?:bash|sh|zsh)/m.test(code)) {
+        result = parseShell(code);
+      } else {
+        result = parseGeneric(code);
+      }
       break;
   }
 
@@ -96,6 +127,19 @@ function detectPatterns(code: string): string[] {
   }
   if (/\b(?:import\s+React|from\s+['"]react['"])/.test(code)) {
     patterns.push('React UI Component');
+  }
+  // DevOps & Infrastructure Patterns
+  if (/FROM\s+[^\s]+/i.test(code) && /(?:RUN|CMD|ENTRYPOINT|WORKDIR|COPY)/i.test(code)) {
+    patterns.push('Docker Container Build');
+  }
+  if (/(?:services:|version:\s*['"]?\d)/i.test(code) && /(?:image:|build:)/i.test(code)) {
+    patterns.push('Docker Compose Multi-Service');
+  }
+  if (/(?:name:|on:)\s*.*(?:jobs:|steps:)/is.test(code)) {
+    patterns.push('CI/CD Workflow Pipeline');
+  }
+  if (/\b(?:CREATE\s+TABLE|SELECT\s+.*?\s+FROM|INSERT\s+INTO)\b/is.test(code)) {
+    patterns.push('SQL Database Operations');
   }
   return patterns;
 }
@@ -398,5 +442,226 @@ function parseGeneric(code: string): ExtractedMetadata {
     dependencies: Array.from(dependencies).slice(0, 10),
     sideEffects: Array.from(sideEffects).slice(0, 6),
     signatures: [],
+  };
+}
+
+function parseDocker(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  // FROM <image> [AS <stage>]
+  const fromRegex = /(?:^|\n)\s*FROM\s+([^\s#]+)(?:\s+AS\s+([^\s#]+))?/gi;
+  let match: RegExpExecArray | null;
+  while ((match = fromRegex.exec(code)) !== null) {
+    dependencies.add(match[1]);
+    if (match[2]) {
+      signatures.push(`Stage: ${match[2]}`);
+    }
+  }
+
+  // EXPOSE <port>
+  const exposeRegex = /(?:^|\n)\s*EXPOSE\s+([^\r\n#]+)/gi;
+  while ((match = exposeRegex.exec(code)) !== null) {
+    sideEffects.add(`Exposes port ${match[1].trim()}`);
+  }
+
+  // VOLUME
+  const volRegex = /(?:^|\n)\s*VOLUME\s+([^\r\n#]+)/gi;
+  while ((match = volRegex.exec(code)) !== null) {
+    sideEffects.add(`Mounts volume ${match[1].trim()}`);
+  }
+
+  // ENTRYPOINT / CMD
+  const cmdRegex = /(?:^|\n)\s*(?:ENTRYPOINT|CMD)\s+([^\r\n#]+)/gi;
+  while ((match = cmdRegex.exec(code)) !== null) {
+    let clean = match[1].trim();
+    if (clean.startsWith('[') && clean.endsWith(']')) {
+      try {
+        const arr = JSON.parse(clean);
+        clean = arr.join(' ');
+      } catch {
+        // keep clean as is
+      }
+    }
+    signatures.push(`Entry: ${clean}`);
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 6),
+  };
+}
+
+function parseYaml(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  // GitHub Actions uses: actions/checkout@v4
+  const usesRegex = /(?:^|\n)\s*(?:-\s*)?uses:\s*['"]?([^\s'"#]+)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = usesRegex.exec(code)) !== null) {
+    dependencies.add(match[1]);
+  }
+
+  // Docker Compose images: image: postgres:15
+  const imgRegex = /(?:^|\n)\s*image:\s*['"]?([^\s'"#]+)/gi;
+  while ((match = imgRegex.exec(code)) !== null) {
+    dependencies.add(match[1]);
+  }
+
+  // Docker Compose Services
+  if (/(?:^|\n)services:\s*/i.test(code)) {
+    const serviceRegex = /(?:^|\n)\s{2}([a-zA-Z0-9_-]+):\s*(?:\n|$)/g;
+    while ((match = serviceRegex.exec(code)) !== null) {
+      if (!['image', 'build', 'ports', 'volumes', 'environment', 'depends_on', 'restart'].includes(match[1])) {
+        signatures.push(`Service: ${match[1]}`);
+      }
+    }
+  }
+
+  // Ports: "8000:8000"
+  const portRegex = /(?:^|\n)\s*-\s*['"]?(\d+:\d+)['"]?/g;
+  while ((match = portRegex.exec(code)) !== null) {
+    sideEffects.add(`Binds port ${match[1]}`);
+  }
+
+  // Volumes
+  if (/(?:^|\n)\s*volumes:\s*/i.test(code)) {
+    sideEffects.add('Persistent volume mounts');
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 6),
+  };
+}
+
+function parseShell(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  // Source / .
+  const srcRegex = /(?:^|\n)\s*(?:source|\.)\s+([^\r\n#;]+)/g;
+  let match: RegExpExecArray | null;
+  while ((match = srcRegex.exec(code)) !== null) {
+    dependencies.add(match[1].trim());
+  }
+
+  // CLI tools invoked
+  const toolList = ['curl', 'wget', 'docker', 'kubectl', 'git', 'npm', 'pnpm', 'yarn', 'pip', 'python', 'node', 'ssh', 'scp', 'rsync'];
+  for (const tool of toolList) {
+    if (new RegExp(`(?:^|\\s|\\|)\\s*${tool}\\b`).test(code)) {
+      dependencies.add(tool);
+    }
+  }
+
+  if (/(?:curl|wget|ssh|scp|rsync)/.test(code)) {
+    sideEffects.add('Network operations / downloads');
+  }
+  if (/(?:rm -rf|rm |mkdir |mv |cp )/.test(code)) {
+    sideEffects.add('File system modifications');
+  }
+
+  // Functions: foo() { ... }
+  const fnRegex = /(?:^|\n)\s*(?:function\s+)?([a-zA-Z0-9_-]+)\s*\(\s*\)\s*\{/g;
+  while ((match = fnRegex.exec(code)) !== null) {
+    signatures.push(match[1]);
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 6),
+  };
+}
+
+function parseJson(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  try {
+    const parsed = JSON.parse(code);
+    if (parsed.dependencies && typeof parsed.dependencies === 'object') {
+      Object.keys(parsed.dependencies).slice(0, 8).forEach((dep) => dependencies.add(dep));
+    }
+    if (parsed.scripts && typeof parsed.scripts === 'object') {
+      Object.keys(parsed.scripts).slice(0, 6).forEach((sc) => signatures.push(`npm run ${sc}`));
+    }
+    if (parsed.name) {
+      signatures.unshift(`Package: ${parsed.name}`);
+    }
+  } catch {
+    // Non-strict JSON or large payload
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 6),
+  };
+}
+
+function parseToml(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  const lines = code.split('\n');
+  let currentSection = '';
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      currentSection = trimmed.slice(1, -1).toLowerCase();
+      signatures.push(`Section: ${currentSection}`);
+      continue;
+    }
+    if (currentSection.includes('dependencies')) {
+      const match = /^([a-zA-Z0-9_-]+)\s*=/i.exec(trimmed);
+      if (match && match[1] !== 'python') {
+        dependencies.add(match[1]);
+      }
+    }
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 6),
+  };
+}
+
+function parseSql(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  const tblRegex = /\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-zA-Z0-9_.]+)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = tblRegex.exec(code)) !== null) {
+    dependencies.add(match[1]);
+  }
+
+  if (/\b(?:INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE)\b/i.test(code)) {
+    sideEffects.add('Database mutations (INSERT/UPDATE/DDL)');
+  }
+  if (/\bSELECT\b/i.test(code)) {
+    sideEffects.add('Database queries (SELECT)');
+  }
+
+  const createRegex = /\bCREATE\s+(?:TABLE|VIEW|INDEX|PROCEDURE|FUNCTION)\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_.]+)/gi;
+  while ((match = createRegex.exec(code)) !== null) {
+    signatures.push(match[0].trim());
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 6),
   };
 }

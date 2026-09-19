@@ -52,7 +52,17 @@ export class CodeFuncLensProvider implements vscode.CodeLensProvider {
         fsPath.endsWith('.map') ||
         fsPath.endsWith('package-lock.json') ||
         fsPath.endsWith('yarn.lock') ||
-        fsPath.endsWith('pnpm-lock.yaml')
+        fsPath.endsWith('pnpm-lock.yaml') ||
+        fsPath.endsWith('.png') ||
+        fsPath.endsWith('.jpg') ||
+        fsPath.endsWith('.jpeg') ||
+        fsPath.endsWith('.gif') ||
+        fsPath.endsWith('.ico') ||
+        fsPath.endsWith('.svg') ||
+        fsPath.endsWith('.wasm') ||
+        fsPath.endsWith('.pyc') ||
+        fsPath.includes('/.git/') ||
+        fsPath.includes('/node_modules/')
       ) {
         return [];
       }
