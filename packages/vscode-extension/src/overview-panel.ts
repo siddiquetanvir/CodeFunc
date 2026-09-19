@@ -124,14 +124,22 @@ export class CodeFuncOverviewPanel {
   <title>CodeFunc Architectural Overview</title>
   <style>
     :root {
-      --bg-card: rgba(22, 27, 34, 0.7);
-      --border-card: #30363d;
-      --accent-blue: #58a6ff;
-      --accent-blue-glow: rgba(56, 189, 248, 0.15);
-      --text-main: #e6edf3;
-      --text-muted: #8b949e;
-      --tag-bg: #161b22;
-      --tag-border: #30363d;
+      --bg-card: var(--vscode-editorWidget-background, rgba(22, 27, 34, 0.7));
+      --border-card: var(--vscode-editorWidget-border, var(--vscode-widget-border, #30363d));
+      --accent-blue: var(--vscode-textLink-foreground, #58a6ff);
+      --text-main: var(--vscode-editor-foreground, #e6edf3);
+      --text-muted: var(--vscode-descriptionForeground, #8b949e);
+      --tag-bg: var(--vscode-badge-background, #161b22);
+      --tag-border: var(--vscode-widget-border, #30363d);
+      --tag-fg: var(--vscode-badge-foreground, #c9d1d9);
+      
+      --btn-bg: var(--vscode-button-secondaryBackground, #21262d);
+      --btn-fg: var(--vscode-button-secondaryForeground, #c9d1d9);
+      --btn-hover: var(--vscode-button-secondaryHoverBackground, #30363d);
+      
+      --btn-primary-bg: var(--vscode-button-background, #238636);
+      --btn-primary-fg: var(--vscode-button-foreground, #ffffff);
+      --btn-primary-hover: var(--vscode-button-hoverBackground, #2ea043);
     }
 
     body {
@@ -216,7 +224,7 @@ export class CodeFuncOverviewPanel {
 
     .flow-desc {
       font-size: 14px;
-      color: #c9d1d9;
+      color: var(--text-main);
       line-height: 1.65;
       margin-left: 28px;
       margin-bottom: 20px;
@@ -229,7 +237,7 @@ export class CodeFuncOverviewPanel {
       flex-direction: column;
       gap: 12px;
       padding-top: 14px;
-      border-top: 1px solid rgba(48, 54, 61, 0.6);
+      border-top: 1px solid var(--border-card);
     }
 
     .meta-row {
@@ -258,14 +266,14 @@ export class CodeFuncOverviewPanel {
       padding: 4px 12px;
       font-size: 12px;
       font-weight: 500;
-      color: #c9d1d9;
+      color: var(--text-main);
       transition: all 0.2s ease;
     }
 
     .tag:hover {
       border-color: var(--accent-blue);
-      color: #ffffff;
-      background: #21262d;
+      color: var(--text-main);
+      background: var(--btn-bg);
     }
 
     .tag .octicon {
@@ -323,7 +331,7 @@ export class CodeFuncOverviewPanel {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #21262d;
+      background: var(--btn-bg);
       color: var(--text-main);
       border: 1px solid var(--border-card);
       border-radius: 6px;
@@ -337,19 +345,19 @@ export class CodeFuncOverviewPanel {
     }
 
     button.btn:hover {
-      background: #30363d;
+      background: var(--btn-hover);
       border-color: var(--accent-blue);
-      color: #ffffff;
+      color: var(--text-main);
     }
 
     button.btn-primary {
-      background: #238636;
-      border-color: rgba(240, 246, 252, 0.1);
-      color: #ffffff;
+      background: var(--btn-primary-bg);
+      border-color: var(--border-card);
+      color: var(--btn-primary-fg);
     }
 
     button.btn-primary:hover {
-      background: #2ea043;
+      background: var(--btn-primary-hover);
     }
   </style>
 </head>
@@ -364,37 +372,37 @@ export class CodeFuncOverviewPanel {
 
     ${
       errorInfo
-        ? `<div class="banner-api" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35);">
+        ? `<div class="banner-api" style="background: var(--vscode-inputValidation-errorBackground, rgba(239, 68, 68, 0.08)); border: 1px solid var(--vscode-inputValidation-errorBorder, rgba(239, 68, 68, 0.35));">
             <div class="banner-api-header">
-              <span class="banner-api-title" style="color: #f87171;">
+              <span class="banner-api-title" style="color: var(--vscode-errorForeground, #f87171);">
                 ${errorInfo.title}
               </span>
               <button class="btn btn-primary" onclick="sendMessage('setApiKey')">
                 ${keySvg} Switch / Update Key
               </button>
             </div>
-            <p class="banner-api-msg" style="color: #e6edf3;">
+            <p class="banner-api-msg" style="color: var(--text-main);">
               ${errorInfo.message}
             </p>
             ${
               errorInfo.tip
-                ? `<div class="banner-api-tip" style="color: #fbbf24;">
+                ? `<div class="banner-api-tip" style="color: var(--vscode-editorWarning-foreground, #fbbf24);">
                     ${errorInfo.tip}
                   </div>`
                 : ''
             }
           </div>`
         : !hasApiKey
-        ? `<div class="banner-api" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3);">
+        ? `<div class="banner-api" style="background: var(--vscode-inputValidation-warningBackground, rgba(245, 158, 11, 0.08)); border: 1px solid var(--vscode-inputValidation-warningBorder, rgba(245, 158, 11, 0.3));">
             <div class="banner-api-header">
-              <span class="banner-api-title" style="color: #fbbf24;">
+              <span class="banner-api-title" style="color: var(--vscode-editorWarning-foreground, #fbbf24);">
                 💡 Using Local Static Inspection
               </span>
               <button class="btn btn-primary" onclick="sendMessage('setApiKey')">
                 ${keySvg} Set API Key
               </button>
             </div>
-            <p class="banner-api-msg" style="color: #c9d1d9;">
+            <p class="banner-api-msg" style="color: var(--text-main);">
               Connect a Gemini, Groq, or OpenRouter API Key for automated deep architectural reasoning.
             </p>
           </div>`
