@@ -103,6 +103,8 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
    ```
 3. Open any file (Python, TypeScript, Dockerfile, YAML, etc.)—**CodeFunc is already working!**
 
+> 💡 **Tip**: Browsing code on GitHub? CodeFunc also has a **Chrome Extension** that injects the same glance header directly onto GitHub code pages. Check out the [GitHub repository](https://github.com/siddiquetanvir/CodeFunc) to download and load it locally!
+
 ---
 
 ## ⌨️ Command Palette Reference

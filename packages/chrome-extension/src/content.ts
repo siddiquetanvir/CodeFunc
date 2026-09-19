@@ -11,6 +11,13 @@ const ICONS = {
 };
 
 function getFileLanguage(filePath: string): string {
+  const baseName = filePath.split('/').pop()?.toLowerCase() || '';
+  if (baseName === 'dockerfile' || baseName.startsWith('dockerfile.') || baseName.endsWith('.dockerfile')) {
+    return 'dockerfile';
+  }
+  if (baseName.includes('docker-compose') || baseName.includes('compose.yaml') || baseName.includes('compose.yml')) {
+    return 'yaml';
+  }
   const ext = filePath.split('.').pop()?.toLowerCase() || '';
   const map: Record<string, string> = {
     py: 'python',
@@ -26,6 +33,16 @@ function getFileLanguage(filePath: string): string {
     hpp: 'cpp',
     java: 'java',
     cs: 'csharp',
+    dockerfile: 'dockerfile',
+    yaml: 'yaml',
+    yml: 'yaml',
+    sh: 'shellscript',
+    bash: 'shellscript',
+    zsh: 'shellscript',
+    json: 'json',
+    jsonc: 'jsonc',
+    toml: 'toml',
+    sql: 'sql',
   };
   return map[ext] || 'plaintext';
 }

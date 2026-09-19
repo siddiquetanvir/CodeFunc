@@ -4,6 +4,7 @@ dist-test/
 out/
 .vscode-test/
 *.vsix
+*.zip
 .env
 .env.local
 .DS_Store

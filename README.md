@@ -96,20 +96,54 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
 
 ## 🚀 Installation & Quick Start
 
-### Option A: From VS Code Marketplace
+### 🖥️ A. VS Code Extension
+
+#### Option 1: From VS Code Marketplace
 1. Open VS Code.
-2. Press `Cmd+P` (macOS) or `Ctrl+P` (Windows/Linux) and paste:
+2. Press `Cmd+P` (macOS) or `Ctrl+P` (Windows/Linux) and run:
    ```bash
    ext install TanvirSdq.codefunc-vscode
    ```
-3. Open any file (Python, TypeScript, Dockerfile, YAML, etc.)—**CodeFunc is already working!**
+3. Open any file (Python, TypeScript, Dockerfile, YAML, etc.)—**CodeFunc is active immediately!**
 
-### Option B: From `.vsix` Release
-1. Download the latest `codefunc-vscode-0.1.6.vsix` from the [Releases](https://github.com/siddiquetanvir/CodeFunc/releases) tab.
-2. Run:
+#### Option 2: From `.vsix` Release
+1. Download `codefunc-vscode-0.1.6.vsix` from the [Releases](https://github.com/siddiquetanvir/CodeFunc/releases) tab.
+2. Install via command line:
    ```bash
    code --install-extension codefunc-vscode-0.1.6.vsix
    ```
+
+---
+
+### 🌐 B. Chrome Extension for GitHub (Load Locally in 60s)
+
+You can run CodeFunc directly inside Google Chrome, Brave, Microsoft Edge, Arc, or Opera to get instant file overviews while browsing GitHub repositories:
+
+#### Method 1: Using Pre-Packaged Release (No Node.js Required)
+1. Download [`codefunc-chrome-v0.1.0.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from GitHub Releases (or locate it in `packages/chrome-extension/codefunc-chrome-v0.1.0.zip`).
+2. Unzip the `.zip` file to any folder on your computer.
+3. Open your browser and navigate to:
+   - **Chrome / Brave / Arc**: `chrome://extensions`
+   - **Microsoft Edge**: `edge://extensions`
+4. Toggle on **"Developer mode"** in the top-right corner.
+5. Click **"Load unpacked"** in the top-left toolbar.
+6. Select the unzipped folder (containing `manifest.json`, `content.js`, etc.).
+7. **That's it!** Open any file on GitHub (e.g. any repository's `Dockerfile`, `.py`, or `.ts`), and CodeFunc will inject the architectural glance header right above the file.
+
+#### Method 2: Building from Source
+```bash
+# 1. Clone the repository
+git clone https://github.com/siddiquetanvir/CodeFunc.git
+cd CodeFunc
+
+# 2. Install dependencies & build extension
+npm install
+npm run build --workspace=packages/chrome-extension
+
+# 3. Load in Chrome:
+# Go to chrome://extensions -> Enable Developer Mode -> Click "Load unpacked" -> Select:
+# CodeFunc/packages/chrome-extension/dist
+```
 
 ---
 

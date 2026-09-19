@@ -5,7 +5,8 @@
   "license": "AGPL-3.0-only",
   "scripts": {
     "build": "node build.js",
-    "watch": "node build.js --watch"
+    "watch": "node build.js --watch",
+    "package": "node build.js && cd dist && zip -FS -r ../codefunc-chrome-v0.1.0.zip . -x '*.DS_Store'"
   },
   "dependencies": {
     "@codefunc/core": "*"
