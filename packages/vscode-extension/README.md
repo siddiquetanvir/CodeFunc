@@ -1,112 +1,161 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/siddiquetanvir/CodeFunc/main/packages/vscode-extension/media/logo.png" alt="CodeFunc Logo" width="160" height="160" />
+
 # CodeFunc
 
-> **Non-intrusive, zero-click file state overview for VS Code (and future Chrome extension)**
+**Non-intrusive, zero-click architectural file overviews for VS Code.**
 
-CodeFunc passively displays a clean, single-line **glance header** at line 0 of active files when collaborating, browsing, or inspecting codebases:
-```text
-🔍 Role: Initializes express server and health endpoints | 📦 Uses: express, axios, fs | 💾 I/O: fs access "config.json"; HTTP request to https://service.internal/health
-```
+[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/TanvirSdq.codefunc-vscode?style=for-the-badge&logo=visual-studio-code&color=007ACC)](https://marketplace.visualstudio.com/items?itemName=TanvirSdq.codefunc-vscode)
+[![Marketplace Installs](https://img.shields.io/visual-studio-marketplace/d/TanvirSdq.codefunc-vscode?style=for-the-badge&color=brightgreen)](https://marketplace.visualstudio.com/items?itemName=TanvirSdq.codefunc-vscode)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/agpl-3.0)
 
----
-
-## 🚀 Key Features
-
-- **Zero-Click Non-Intrusive UX**: Uses VS Code's native **CodeLens API** positioned at Line 0. It never blocks lines or alters your source code.
-- **Multi-Provider AI Intelligence**:
-  - **Anthropic** (`sk-ant-...`): Direct Claude 3.5 Haiku & Sonnet inference with native Messages API.
-  - **OpenRouter** (`sk-or-...`): Access Gemini, Claude, Llama 3.3, and hundreds of models with unified billing.
-  - **Groq** (`gsk_...`): Free, ultra-fast 500 tokens/sec inference (Llama 3.3 70B, Qwen).
-  - **Google Gemini** (`AQ...` / `AIzaSy...`): Native Gemini Flash support.
-  - **Smart Auto-Detection**: Paste any key and CodeFunc automatically selects the right provider.
-- **Custom AI Personas**:
-  - Choose between **General Developer**, **Security Auditor**, or **Performance Expert** via `codefunc.persona`.
-- **Smart Ignore Protection**:
-  - Automatically avoids summarizing minified files (`*.min.*`), bundle locks, and oversized files (`codefunc.maxFileLines`) to conserve API tokens.
-- **2-3 Line Deep Understanding for Large Files**:
-  - Supports comprehensive multi-sentence explanations and dual-tier CodeLens badges (role + algorithmic mechanisms + I/O).
-- **Hybrid Performance Architecture**:
-  - **Local Static Extractor**: Pre-extracts imports, file I/O operations (e.g. `open()`, `fs.readFile`, `pd.read_csv`), network calls (`fetch`, `requests`), 2D grid/matrix algorithms, and signatures.
-  - **MD5 Content Hash Caching**: Instantly retrieves cached summaries for unchanged files with zero latency and zero API calls (capped at 500 items to prevent memory bloating).
-  - **Resilient Fallback**: If no API key is configured or offline, automatically provides rich local algorithmic inspection without failing.
-- **Deep Architectural Overview**: Side-by-side split Markdown view + rich hover cards for large, complex codebases.
-- **Multi-Language Support**: Python, JS/TS, C/C++, Go, Rust, Java, C#, and generic file fallback.
-- **Secure Key Storage**: API keys are encrypted in your machine's OS keychain via VS Code `SecretStorage`.
+</div>
 
 ---
 
-## 📁 Monorepo Structure
+## 💡 What is CodeFunc?
+
+When exploring unfamiliar open-source codebases, reviewing team pull requests, or navigating complex enterprise architectures, developers spend cognitive energy reading dozens of lines just to understand:
+- *What is the primary responsibility of this file?*
+- *What external services, libraries, or base images does it invoke?*
+- *What ports, databases, files, or network endpoints are touched?*
+
+**CodeFunc solves this directly at Line 0.** It automatically places a clean, lightweight **CodeLens glance header** at the top of every file you open—requiring zero clicks, zero prompt typing, and zero side-panel distraction.
 
 ```text
-CodeFunc/
-├── packages/
-│   ├── core/                  # Shared platform-agnostic engine
-│   │   ├── src/
-│   │   │   ├── parser.ts      # Multi-language static extraction
-│   │   │   ├── hash.ts        # MD5 content hasher
-│   │   │   ├── gemini.ts      # Gemini API client & fallback logic
-│   │   │   └── types.ts       # Shared TypeScript schemas
-│   │   └── tests/             # Unit test suite
-│   └── vscode-extension/      # VS Code extension host
-│       ├── src/
-│       │   ├── extension.ts        # Activation, commands, status bar
-│       │   ├── codelens-provider.ts# Line 0 CodeLens provider
-│       │   ├── secret-manager.ts   # VS Code SecretStorage manager
-│       │   └── vs-cache.ts         # WorkspaceState cache adapter
-│       └── package.json            # Extension manifest & settings
-├── examples/                  # Test files (Python, TypeScript)
-├── .vscode/
-│   ├── launch.json            # F5 Extension Debugging configuration
-│   └── tasks.json             # Build tasks
-├── package.json               # Root npm workspaces configuration
-└── tsconfig.json
+🔍 Role: Docker container build based on python:3.10-slim
+📦 Uses: python:3.10-slim
+💾 I/O: Exposes port 8000
+[📖 Detailed Overview] [⚡ Refresh]
 ```
+
+Clicking **`[📖 Detailed Overview]`** launches a dedicated **glassmorphic side panel** with deep architectural diagrams, data flow breakdown, and risk analysis.
 
 ---
 
-## 🛠️ Getting Started & Local Development
+## ✨ Key Highlights
 
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Build All Packages
-```bash
-npm run build
-```
-
-### 3. Run Unit Tests
-```bash
-npm test
-```
-
-### 4. Test Live in VS Code (F5 Debugging)
-1. Open this `CodeFunc` directory in VS Code.
-2. Press **`F5`** (or go to the **Run & Debug** menu and click **Run CodeFunc Extension**).
-3. An **[Extension Development Host]** test window will launch.
-4. In the test window, open any code file (such as `examples/sample_model.py` or `examples/sample_server.ts`).
-5. You will see the CodeLens header appear at the very top of the file!
+### ⚡ 1. Universal File Intelligence (v0.1.6)
+CodeFunc isn't just for programming languages—it now delivers rich structural overviews across your entire DevOps and infrastructure stack:
+- 🐳 **Dockerfiles**: Automatically extracts base images, multi-stage build pipelines, exposed ports, and container entrypoint commands (`CMD` / `ENTRYPOINT`).
+- 🐙 **Docker Compose (`docker-compose.yml`)**: Identifies orchestrated services, backing container images, port forwarding bindings, and volume mounts.
+- ⚙️ **CI/CD Pipelines (GitHub Actions)**: Analyzes workflow triggers, jobs, and shared actions (`actions/checkout`, `setup-node`, etc.).
+- 🐚 **Shell Scripts (`.sh`, `.bash`, `.zsh`)**: Detects automation routines, sourced helper scripts, and CLI utilities (`curl`, `docker`, `kubectl`, `rsync`).
+- 📦 **Manifests & Configs (`package.json`, `tsconfig.json`)**: Summarizes package roles, build scripts, TypeScript compiler targets, and dependencies.
+- 🗄️ **SQL Schemas & Migrations (`.sql`)**: Identifies queried tables, DDL migrations (`CREATE TABLE`), and data mutation operations.
+- 💻 **All Major Languages**: Full AST and heuristic parsing for Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, and C#.
 
 ---
 
-## ⚙️ Configuration & Commands
+### 🛡️ 2. Intelligent Offline Fallback (Zero Config, 100% Free & Private)
+- **Works instantly out-of-the-box**: No API key or account needed.
+- **Privacy-first**: For non-technical users or enterprise environments with strict security policies, CodeFunc runs a sophisticated local static analysis engine that extracts key mechanisms, patterns, dependencies, and I/O completely on-device.
+- **Zero latency**: Local summaries render in **< 5 milliseconds** with 0 network calls.
 
-Open the VS Code Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`):
+---
 
-| Command | Description |
+### 🧠 3. Multi-Provider AI Superpowers
+Bring your favorite LLM provider for deep, human-like architectural summaries. CodeFunc automatically detects your key on paste:
+
+| Provider | Supported API Keys | Recommended Default Model | Description |
+|---|---|---|---|
+| **Google Gemini** | `AQ...` / `AIzaSy...` | `gemini-3.6-flash` | Uses Google's latest official **Interactions API** with structured JSON output. |
+| **Groq** | `gsk_...` | `llama-3.3-70b-versatile` | Blazing-fast inference (500+ tokens/sec) on LPUs, completely free tier available. |
+| **OpenRouter** | `sk-or-...` or `sk-...` | `google/gemini-2.5-flash` / `meta-llama/llama-3.3-70b-instruct` | Unified gateway to hundreds of open-source and commercial foundation models. |
+| **Anthropic** | `sk-ant-...` | `claude-3-5-haiku-latest` | Native Claude Messages API with high analytical precision. |
+
+---
+
+### 🎨 4. Custom Analysis Personas
+Tailor your code lens to your current objective via the `codefunc.persona` setting:
+- **General Developer**: Focuses on architectural intent, high-level business logic, and component flow.
+- **Security Auditor**: Highlights sensitive data handling, authentication/authorization layers, network attack surfaces, and untrusted inputs.
+- **Performance Expert**: Spotlights computational complexity (e.g. 2D grid loops, nested iterations), memory allocations, and potential I/O bottlenecks.
+
+---
+
+### ⚡ 5. Performance by Design
+- **Cryptographic MD5 Caching**: Unchanged files are hashed and served instantaneously from memory/workspace cache. Zero repeated API calls while editing.
+- **Smart Ignore Filter**: Automatically ignores minified bundles (`*.min.js`, `*.min.css`), lockfiles (`package-lock.json`, `pnpm-lock.yaml`), binary assets (`.png`, `.wasm`, `.pyc`), and vendor folders (`node_modules/`, `.git/`).
+- **Responsive Stacking**: If a summary exceeds your viewport, CodeFunc gracefully splits the content into stacked CodeLens lines so you never experience horizontal scroll overflow.
+
+---
+
+## 🔒 Security & Why We Don't Hardcode Shared API Keys
+
+> [!IMPORTANT]
+> **Design Philosophy**: CodeFunc will **never hardcode a shared public API key** inside the extension client.
+
+1. **Vulnerability of Client Keys**: Extensions distributed via the VS Code Marketplace are client-side JavaScript packages. Any hardcoded API key can be extracted by automated scrapers in seconds, leading to immediate revocation, billing abuse, or global rate limit lockouts for all users.
+2. **True Reliability**: By pairing an **intelligent zero-cost local offline parser** with a **Bring-Your-Own-Key (BYOK)** model, you get 100% reliable functionality that never breaks because someone else burned through a shared token pool.
+3. **OS Keychain Encryption**: When you provide an API key, it is encrypted in your operating system's native keychain using VS Code's `SecretStorage` API. It is never committed to Git, logged to disk, or sent to any intermediary server.
+
+---
+
+## 🚀 Installation & Quick Start
+
+### From VS Code Marketplace
+1. Open VS Code.
+2. Press `Cmd+P` (macOS) or `Ctrl+P` (Windows/Linux) and paste:
+   ```bash
+   ext install TanvirSdq.codefunc-vscode
+   ```
+3. Open any file (Python, TypeScript, Dockerfile, YAML, etc.)—**CodeFunc is already working!**
+
+---
+
+## ⌨️ Command Palette Reference
+
+Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`):
+
+| Command | Action |
 |---|---|
-| `CodeFunc: Set Gemini API Key` | Securely stores your Gemini API key in VS Code SecretStorage |
-| `CodeFunc: Clear Gemini API Key` | Removes the stored API key |
-| `CodeFunc: Refresh File Summary` | Re-analyzes active files and updates CodeLens |
-| `CodeFunc: Clear Summary Cache` | Wipes the local hash cache |
-| `CodeFunc: Show File Details` | Opens a detail view when clicking on a CodeLens badge |
+| `CodeFunc: Set AI API Key` | Prompts for your Gemini, Groq, OpenRouter, or Anthropic key and securely stores it in the OS keychain. |
+| `CodeFunc: Clear AI API Key` | Deletes the stored API key and seamlessly transitions back to local offline mode. |
+| `CodeFunc: Refresh File Summary` | Forces re-analysis of the currently active document, bypassing cache. |
+| `CodeFunc: Clear Summary Cache` | Wipes the entire MD5 in-memory and workspace summary cache. |
+| `CodeFunc: Show File Details` | Displays quick overview dialog for the active document. |
+| `CodeFunc: Open Deep Architectural Overview` | Opens the split-screen glassmorphic Webview panel for comprehensive file exploration. |
 
-### Settings (`settings.json`):
-- `codefunc.enabled`: Enable or disable the CodeLens overview (default: `true`).
-- `codefunc.model`: Gemini model to use (`gemini-3.8-flash` or `gemini-3.5-flash-lite`).
-- `codefunc.showSideEffects`: Whether to display detected I/O and side effects (default: `true`).
+---
+
+## ⚙️ Configuration Options
+
+Customize CodeFunc via your VS Code `settings.json`:
+
+```json
+{
+  // Enable or disable CodeFunc CodeLens headers
+  "codefunc.enabled": true,
+
+  // AI Provider: "auto", "gemini", "groq", "openrouter", "anthropic"
+  "codefunc.provider": "auto",
+
+  // Optional custom model override (leave empty for recommended defaults)
+  "codefunc.model": "",
+
+  // Analysis persona: "General Developer", "Security Auditor", "Performance Expert"
+  "codefunc.persona": "General Developer",
+
+  // Show detected I/O and side effects in CodeLens
+  "codefunc.showSideEffects": true,
+
+  // Maximum character width before stacking CodeLens badges
+  "codefunc.maxCodeLensLength": 70,
+
+  // Skip minified files, lockfiles, and binaries to save tokens
+  "codefunc.ignoreMinified": true,
+
+  // Skip files larger than N lines (0 to disable)
+  "codefunc.maxFileLines": 8000
+}
+```
 
 ---
 
 ## 📄 License
-GNU Affero General Public License v3.0 (AGPLv3) © 2026 Tanvir Siddique. All rights reserved.
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**. See the [LICENSE](LICENSE) file for full details.
+
+Copyright © 2026 [Tanvir Siddique](https://github.com/siddiquetanvir). All rights reserved.
