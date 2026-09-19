@@ -30,27 +30,36 @@ function getFilePathFromUrl(): string {
   const parts = window.location.pathname.split('/blob/');
   if (parts.length > 1) {
     const afterBlob = parts[1].split('/');
-    afterBlob.shift(); // remove branch/commit
+    afterBlob.shift(); // remove branch/commit name
     return afterBlob.join('/');
   }
   return window.location.pathname.split('/').pop() || '';
 }
 
-function extractCodeContent(): string | null {
-  // Method 1: Modern React code view
+async function fetchRawCode(): Promise<string | null> {
+  try {
+    const rawUrl = window.location.href.replace('/blob/', '/raw/');
+    const res = await fetch(rawUrl);
+    if (res.ok) {
+      return await res.text();
+    }
+  } catch (e) {
+    // Fallback to DOM extraction
+  }
+  return null;
+}
+
+function extractCodeFromDOM(): string | null {
+  // Method 1: React code lines
   const reactLines = document.querySelectorAll('.react-code-text, [data-selector="code-blob-lines"]');
   if (reactLines.length > 0) {
-    return Array.from(reactLines)
-      .map((el) => el.textContent || '')
-      .join('\n');
+    return Array.from(reactLines).map(el => el.textContent || '').join('\n');
   }
 
   // Method 2: Classic table view
   const tableLines = document.querySelectorAll('table.highlight td.blob-code-inner');
   if (tableLines.length > 0) {
-    return Array.from(tableLines)
-      .map((el) => el.textContent || '')
-      .join('\n');
+    return Array.from(tableLines).map(el => el.textContent || '').join('\n');
   }
 
   // Method 3: Textarea
@@ -63,17 +72,23 @@ function extractCodeContent(): string | null {
 }
 
 function findInsertionTarget(): HTMLElement | null {
-  // Modern GitHub Blob container
-  const modernBlob = document.querySelector('[data-selector="repos-split-pane-content"] #blob-view') as HTMLElement;
-  if (modernBlob) return modernBlob;
+  // Candidate 1: The container right above the code lines in GitHub's new React view
+  const fileContent = document.querySelector('[data-testid="blob-content-holder"], .Box-body, #blob-view, [data-selector="repos-split-pane-content"]');
+  if (fileContent && fileContent instanceof HTMLElement) {
+    return fileContent;
+  }
 
-  // React blob container wrapper
-  const reactContainer = document.querySelector('[data-testid="blob-content-holder"]') as HTMLElement;
-  if (reactContainer) return reactContainer;
+  // Candidate 2: The classic Box element
+  const box = document.querySelector('.Box');
+  if (box && box instanceof HTMLElement) {
+    return box;
+  }
 
-  // Classic file box
-  const box = document.querySelector('.Box .Box-header') as HTMLElement;
-  if (box && box.parentElement) return box.parentElement;
+  // Candidate 3: Above the raw table or code area
+  const codeArea = document.querySelector('table.highlight, .react-code-view, #read-only-cursor-text-area');
+  if (codeArea && codeArea.parentElement) {
+    return codeArea.parentElement;
+  }
 
   return null;
 }
@@ -81,31 +96,43 @@ function findInsertionTarget(): HTMLElement | null {
 async function runCodeFunc() {
   if (!isBlobView()) return;
 
-  const existing = document.getElementById(BANNER_ID);
-  if (existing) {
-    existing.remove();
+  if (document.getElementById(BANNER_ID)) {
+    return; // Already injected
   }
 
-  const code = extractCodeContent();
-  if (!code || !code.trim()) return;
-
   const target = findInsertionTarget();
-  if (!target) return;
+  if (!target) {
+    return;
+  }
 
   const filePath = getFilePathFromUrl();
   const languageId = getFileLanguage(filePath);
 
-  // Render loading state
+  // Render loading state immediately
   const banner = document.createElement('div');
   banner.id = BANNER_ID;
   banner.className = 'codefunc-banner codefunc-loading';
   banner.innerHTML = `
-    <div class="codefunc-row">
-      <span class="codefunc-badge">⚡ CodeFunc</span>
-      <span class="codefunc-text">Analyzing file architecture...</span>
+    <div class="codefunc-header">
+      <div class="codefunc-title">
+        <span class="codefunc-icon">⚡</span>
+        <strong>CodeFunc</strong>
+        <span class="codefunc-sub">Analyzing file architecture...</span>
+      </div>
     </div>
   `;
-  target.prepend(banner);
+  target.insertBefore(banner, target.firstChild);
+
+  // Get code content (fetch raw file for 100% fidelity, fallback to DOM)
+  let code = await fetchRawCode();
+  if (!code) {
+    code = extractCodeFromDOM();
+  }
+
+  if (!code || !code.trim()) {
+    banner.remove();
+    return;
+  }
 
   try {
     const response: any = await chrome.runtime.sendMessage({
@@ -151,16 +178,19 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-// Observe GitHub's SPA (Turbo/PJAX) navigations
-let lastUrl = window.location.href;
-const observer = new MutationObserver(() => {
-  if (window.location.href !== lastUrl) {
-    lastUrl = window.location.href;
-    setTimeout(runCodeFunc, 500);
+// Watch for Turbo & dynamic GitHub URL transitions
+let lastPath = window.location.pathname;
+setInterval(() => {
+  if (window.location.pathname !== lastPath) {
+    lastPath = window.location.pathname;
+    const old = document.getElementById(BANNER_ID);
+    if (old) old.remove();
+    setTimeout(runCodeFunc, 300);
+  } else if (isBlobView() && !document.getElementById(BANNER_ID)) {
+    runCodeFunc();
   }
-});
-observer.observe(document.body, { childList: true, subtree: true });
+}, 800);
 
-window.addEventListener('turbo:render', () => setTimeout(runCodeFunc, 400));
-window.addEventListener('load', () => setTimeout(runCodeFunc, 500));
-setTimeout(runCodeFunc, 800);
+document.addEventListener('turbo:render', () => setTimeout(runCodeFunc, 200));
+document.addEventListener('DOMContentLoaded', () => setTimeout(runCodeFunc, 300));
+runCodeFunc();
