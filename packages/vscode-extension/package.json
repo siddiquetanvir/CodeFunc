@@ -2,7 +2,7 @@
   "name": "codefunc-vscode",
   "displayName": "CodeFunc - File Overview",
   "description": "Non-intrusive, zero-click file state overview powered by Gemini AI and local static extraction",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "TanvirSdq",
   "icon": "media/logo.png",
   "license": "AGPL-3.0-only",
@@ -101,7 +101,7 @@
         "codefunc.model": {
           "type": "string",
           "default": "",
-          "description": "Optional model override (e.g. 'google/gemini-2.5-flash' on OpenRouter, 'llama-3.3-70b-versatile' on Groq, 'gemini-flash-latest' on Gemini, or 'claude-3-5-haiku-latest' on Anthropic). Leave empty for auto-defaults."
+          "description": "Optional model override (e.g. 'google/gemini-3.6-flash' on OpenRouter, 'llama-3.3-70b-versatile' on Groq, 'gemini-3.6-flash' on Gemini, or 'claude-3-5-haiku-latest' on Anthropic). Leave empty for auto-defaults."
         },
         "codefunc.persona": {
           "type": "string",

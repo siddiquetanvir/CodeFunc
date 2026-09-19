@@ -68,7 +68,7 @@ function getPersonaInstruction(persona?: string): string {
  * Uses cache if provided to avoid repeated API calls for unchanged files.
  */
 export async function summarizeFile(options: SummarizeOptions): Promise<FileSummary> {
-  const { code, languageId, filePath, apiKey, model = 'gemini-2.5-flash', cache, persona } = options;
+  const { code, languageId, filePath, apiKey, model = 'gemini-3.6-flash', cache, persona } = options;
 
   // 1. Check cache first (incorporate persona into hash key if set)
   const personaSuffix = persona ? `:${persona}` : '';
@@ -351,44 +351,71 @@ async function callGemini(
   fallbackMetadata: ExtractedMetadata
 ): Promise<FileSummary> {
   const client = new GoogleGenAI({ apiKey });
-  const targetModel = !model || model === 'gemini-flash-latest' ? 'gemini-2.5-flash' : model;
+  // Always resolve to the latest recommended model
+  const targetModel =
+    !model ||
+    model === 'gemini-flash-latest' ||
+    model === 'gemini-2.5-flash' ||
+    model === 'gemini-1.5-flash'
+      ? 'gemini-3.6-flash'
+      : model;
 
-  // Attempt 1: generateContent with structured JSON schema
+  // Attempt 1: Interactions API (Google's officially recommended API for gemini-3.6+)
   try {
-    const response = await client.models.generateContent({
+    const interaction = await client.interactions.create({
       model: targetModel,
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: SUMMARY_JSON_SCHEMA as any,
-      },
+      input: prompt,
+      response_format: [
+        {
+          type: 'text',
+          mime_type: 'application/json',
+          schema: SUMMARY_JSON_SCHEMA,
+        },
+      ],
     });
 
-    if (response.text) {
-      const parsed = JSON.parse(response.text);
+    if (interaction.output_text) {
+      const parsed = JSON.parse(interaction.output_text);
       return sanitizeSummary(parsed, fallbackMetadata);
     }
-  } catch (primaryError: any) {
-    // Attempt 2: Fallback to gemini-1.5-flash if gemini-2.5-flash fails on user's tier
-    if (targetModel !== 'gemini-1.5-flash') {
-      try {
-        const fallbackResp = await client.models.generateContent({
-          model: 'gemini-1.5-flash',
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: SUMMARY_JSON_SCHEMA as any,
-          },
-        });
-        if (fallbackResp.text) {
-          const parsed = JSON.parse(fallbackResp.text);
-          return sanitizeSummary(parsed, fallbackMetadata);
-        }
-      } catch {
-        throw primaryError;
+  } catch (interactionError) {
+    // Attempt 2: generateContent API with structured schema
+    try {
+      const response = await client.models.generateContent({
+        model: targetModel,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: SUMMARY_JSON_SCHEMA as any,
+        },
+      });
+
+      if (response.text) {
+        const parsed = JSON.parse(response.text);
+        return sanitizeSummary(parsed, fallbackMetadata);
       }
+    } catch (primaryError: any) {
+      // Attempt 3: If 3.6 encounters quota or region variations, try gemini-3.8-flash
+      if (targetModel !== 'gemini-3.8-flash') {
+        try {
+          const fallbackResp = await client.models.generateContent({
+            model: 'gemini-3.8-flash',
+            contents: prompt,
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema: SUMMARY_JSON_SCHEMA as any,
+            },
+          });
+          if (fallbackResp.text) {
+            const parsed = JSON.parse(fallbackResp.text);
+            return sanitizeSummary(parsed, fallbackMetadata);
+          }
+        } catch {
+          throw primaryError;
+        }
+      }
+      throw primaryError;
     }
-    throw primaryError;
   }
 
   throw new Error('No output returned from Gemini API');
