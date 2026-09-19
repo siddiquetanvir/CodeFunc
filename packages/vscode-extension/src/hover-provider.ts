@@ -22,28 +22,37 @@ export class CodeFuncHoverProvider implements vscode.HoverProvider {
     const md = new vscode.MarkdownString();
     md.isTrusted = true;
     md.supportThemeIcons = true;
-    md.appendMarkdown(`### $(sparkle) **CodeFunc File Overview**\n\n`);
-    md.appendMarkdown(`**Role**: ${summary.coreRole}\n\n`);
 
+    // Header Role
+    md.appendMarkdown(`### $(sparkle) **${summary.coreRole}**\n\n`);
+
+    // Detailed Architecture Flow
     if (summary.detailedSummary) {
-      md.appendMarkdown(`**Overview**: ${summary.detailedSummary}\n\n`);
+      md.appendMarkdown(`${summary.detailedSummary}\n\n`);
+    }
+
+    // Modern Pill-style Metadata Tags
+    const tags: string[] = [];
+
+    const deps = summary.dependencies.filter((d) => d && d !== 'None detected');
+    if (deps.length > 0) {
+      tags.push(`$(package) \`${deps.slice(0, 4).join(', ')}\``);
+    }
+
+    const ios = summary.sideEffects.filter((s) => s && s !== 'None detected');
+    if (ios.length > 0) {
+      tags.push(`$(arrow-swap) \`${ios.slice(0, 2).join('; ')}\``);
     }
 
     if (summary.keyMechanisms && summary.keyMechanisms.length > 0) {
-      md.appendMarkdown(`**Mechanisms**: ${summary.keyMechanisms.map((m) => `\`${m}\``).join(', ')}\n\n`);
+      tags.push(`$(circuit-board) \`${summary.keyMechanisms.slice(0, 2).join(', ')}\``);
     }
 
-    const deps = summary.dependencies.filter((d) => d !== 'None detected');
-    if (deps.length > 0) {
-      md.appendMarkdown(`**Dependencies**: ${deps.map((d) => `\`${d}\``).join(', ')}\n\n`);
+    if (tags.length > 0) {
+      md.appendMarkdown(`${tags.join(' &nbsp;•&nbsp; ')}\n\n`);
     }
 
-    const ios = summary.sideEffects.filter((s) => s !== 'None detected');
-    if (ios.length > 0) {
-      md.appendMarkdown(`**I/O & Side-effects**: ${ios.join('; ')}\n\n`);
-    }
-
-    md.appendMarkdown(`---\n[$(book) Open Deep Overview](command:codefunc.openDetailedOverview) • [$(refresh) Refresh](command:codefunc.refreshSummary)`);
+    md.appendMarkdown(`---\n[$(book) Open Deep Overview](command:codefunc.openDetailedOverview) &nbsp;|&nbsp; [$(refresh) Refresh](command:codefunc.refreshSummary) &nbsp;|&nbsp; [$(key) Change Key](command:codefunc.setApiKey)`);
 
     return new vscode.Hover(md, new vscode.Range(0, 0, 0, document.lineAt(0).text.length));
   }
