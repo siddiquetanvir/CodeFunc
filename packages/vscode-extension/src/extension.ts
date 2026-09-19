@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SecretManager } from './secret-manager';
 import { WorkspaceStateCache } from './vs-cache';
 import { CodeFuncLensProvider } from './codelens-provider';
+import { CodeFuncOverviewPanel } from './overview-panel';
 import { FileSummary } from '@codefunc/core';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -75,7 +76,7 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Command: Open Deep Overview (opens side-by-side Markdown overview)
+  // Command: Open Deep Overview (opens side-by-side Webview architectural card)
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'codefunc.openDetailedOverview',
@@ -86,35 +87,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
         const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString()) || activeEditor?.document;
         const summary = targetSummary || (doc ? provider.getSummary(doc) : undefined);
-        const fileName = vscode.workspace.asRelativePath(uri);
+        const hasKey = Boolean(await secretManager.getApiKey());
 
-        const mdContent = `# ⚡ CodeFunc Architectural Overview: \`${fileName}\`
-
-## 🎯 Primary Purpose
-> **${summary?.coreRole || 'Analyzing file state...'}**
-
-${summary?.detailedSummary ? `## 📖 Detailed System Flow\n${summary.detailedSummary}\n` : ''}
-
-${summary?.keyMechanisms && summary.keyMechanisms.length > 0 ? `## ⚙️ Key Mechanisms & Algorithmic Patterns\n${summary.keyMechanisms.map(m => `- \`${m}\``).join('\n')}\n` : ''}
-
-## 📦 Frameworks & Dependencies
-${summary && summary.dependencies.length > 0 && summary.dependencies[0] !== 'None detected' ? summary.dependencies.map(d => `- \`${d}\``).join('\n') : '_No external dependencies detected._'}
-
-## ⇄ I/O & System Side Effects
-${summary && summary.sideEffects.length > 0 && summary.sideEffects[0] !== 'None detected' ? summary.sideEffects.map(s => `- ${s}`).join('\n') : '_No external file, DB, or network side effects detected._'}
-
----
-*Tip: Configure a Gemini API Key via \`CodeFunc: Set Gemini API Key\` for full automated deep-dive analysis.*
-`;
-
-        const overviewDoc = await vscode.workspace.openTextDocument({
-          content: mdContent,
-          language: 'markdown',
-        });
-        await vscode.window.showTextDocument(overviewDoc, {
-          viewColumn: vscode.ViewColumn.Beside,
-          preview: true,
-        });
+        CodeFuncOverviewPanel.render(context.extensionUri, uri, summary, hasKey);
       }
     )
   );

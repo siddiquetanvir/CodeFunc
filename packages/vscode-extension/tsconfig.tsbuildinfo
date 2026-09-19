@@ -1,1 +1,1 @@
-{"root":["./src/codelens-provider.ts","./src/extension.ts","./src/hover-provider.ts","./src/secret-manager.ts","./src/vs-cache.ts"],"version":"5.9.3"}
+{"root":["./src/codelens-provider.ts","./src/extension.ts","./src/hover-provider.ts","./src/overview-panel.ts","./src/secret-manager.ts","./src/vs-cache.ts"],"version":"5.9.3"}

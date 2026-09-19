@@ -77,11 +77,27 @@ function detectPatterns(code: string): string[] {
   if (/(?:express\(\)|app\.listen|createServer)/.test(code)) {
     patterns.push('HTTP Web Service');
   }
+  // Frameworks & Domain Patterns
+  if (/\b(?:import\s+streamlit|from\s+streamlit)\b/.test(code)) {
+    patterns.push('Streamlit Dashboard');
+  }
+  if (/\b(?:import\s+pandas|from\s+pandas)\b/.test(code) && /\b(?:import\s+matplotlib|import\s+plotly|import\s+seaborn|from\s+plotly|from\s+matplotlib)\b/.test(code)) {
+    patterns.push('Data Analytics & Visualization Pipeline');
+  }
+  if (/\b(?:FastAPI|from\s+fastapi)\b/.test(code)) {
+    patterns.push('FastAPI REST API');
+  }
+  if (/\b(?:Flask|from\s+flask)\b/.test(code)) {
+    patterns.push('Flask Web Service');
+  }
+  if (/\b(?:import\s+React|from\s+['"]react['"])/.test(code)) {
+    patterns.push('React UI Component');
+  }
   return patterns;
 }
 
 function extractLeadComment(code: string): string | undefined {
-  const lines = code.split('\n').slice(0, 25);
+  const lines = code.split('\n').slice(0, 30);
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line) continue;
@@ -90,13 +106,26 @@ function extractLeadComment(code: string): string | undefined {
         .replace(/^\/\/\s*|^\/\*\s*|^\*\s*|^#\s*/, '')
         .replace(/\*\/$/, '')
         .trim();
+
+      // Skip comment divider banners: "--- SECTION ---", "=== CONFIG ===", "### HELPERS ###"
       if (
-        cleaned.length > 5 &&
+        /^[-=*#~_]{2,}/.test(cleaned) ||
+        /[-=*#~_]{2,}$/.test(cleaned) ||
+        /^[-=*#~_\s]+$/.test(cleaned) ||
+        /^([A-Z0-9_\s-]{4,})$/.test(cleaned) // ALL CAPS section header
+      ) {
+        continue;
+      }
+
+      if (
+        cleaned.length > 8 &&
         !cleaned.startsWith('eslint') &&
         !cleaned.startsWith('pragma') &&
         !cleaned.startsWith('!') &&
         !cleaned.startsWith('include') &&
-        !cleaned.startsWith('@ts-')
+        !cleaned.startsWith('@ts-') &&
+        !cleaned.startsWith('type:') &&
+        !cleaned.startsWith('coding:')
       ) {
         return cleaned;
       }

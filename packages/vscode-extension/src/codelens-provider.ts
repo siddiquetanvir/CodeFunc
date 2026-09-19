@@ -132,8 +132,8 @@ export class CodeFuncLensProvider implements vscode.CodeLensProvider {
       lenses.push(
         new vscode.CodeLens(topOfFileRange, {
           title: roleLines[i],
-          command: 'codefunc.showDetails',
-          tooltip: 'CodeFunc File Overview - Click for options and full overview',
+          command: 'codefunc.openDetailedOverview',
+          tooltip: 'CodeFunc File Overview - Click to open full architectural panel',
           arguments: [document.uri, summary],
         })
       );
@@ -146,8 +146,8 @@ export class CodeFuncLensProvider implements vscode.CodeLensProvider {
         lenses.push(
           new vscode.CodeLens(topOfFileRange, {
             title: dLine,
-            command: 'codefunc.showDetails',
-            tooltip: 'File dependencies',
+            command: 'codefunc.openDetailedOverview',
+            tooltip: 'File dependencies - Click to open full architectural panel',
             arguments: [document.uri, summary],
           })
         );
@@ -161,8 +161,8 @@ export class CodeFuncLensProvider implements vscode.CodeLensProvider {
         lenses.push(
           new vscode.CodeLens(topOfFileRange, {
             title: iLine,
-            command: 'codefunc.showDetails',
-            tooltip: 'Detected file, console, and network I/O',
+            command: 'codefunc.openDetailedOverview',
+            tooltip: 'Detected file, console, and network I/O - Click to open full architectural panel',
             arguments: [document.uri, summary],
           })
         );
@@ -177,8 +177,8 @@ export class CodeFuncLensProvider implements vscode.CodeLensProvider {
         lenses.push(
           new vscode.CodeLens(topOfFileRange, {
             title: mLine,
-            command: 'codefunc.showDetails',
-            tooltip: 'Algorithmic patterns & mechanisms',
+            command: 'codefunc.openDetailedOverview',
+            tooltip: 'Algorithmic patterns & mechanisms - Click to open full architectural panel',
             arguments: [document.uri, summary],
           })
         );
