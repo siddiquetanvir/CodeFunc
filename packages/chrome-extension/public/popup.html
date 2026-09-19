@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodeFunc Settings</title>
+  <style>
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 16px;
+      margin: 0;
+      background: #0d1117;
+      color: #e6edf3;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      color: #58a6ff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #8b949e;
+    }
+    input, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 13px;
+    }
+    button {
+      width: 100%;
+      padding: 8px;
+      background: #238636;
+      border: 1px solid rgba(240, 246, 252, 0.1);
+      border-radius: 6px;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2ea043;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+      color: #3fb950;
+      display: none;
+    }
+    .hint {
+      font-size: 11px;
+      color: #8b949e;
+      margin-top: -8px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h2>⚡ CodeFunc</h2>
+  
+  <label for="apiKey">AI API Key</label>
+  <input type="password" id="apiKey" placeholder="sk-ant-... or sk-or-... or AQ...">
+  <div class="hint">Supports Claude, OpenRouter, Groq, or Gemini.</div>
+
+  <label for="persona">Analysis Perspective</label>
+  <select id="persona">
+    <option value="General Developer">General Developer</option>
+    <option value="Security Auditor">Security Auditor</option>
+    <option value="Performance Expert">Performance Expert</option>
+  </select>
+
+  <button id="saveBtn">Save Settings</button>
+  <div id="status" class="status">Settings saved!</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
