@@ -128,7 +128,7 @@ Return a JSON object conforming strictly to the requested schema.
     const customModel = isGeminiDefaultSlug ? undefined : model.trim();
 
     if (resolvedProvider === 'groq') {
-      const groqModel = customModel || 'llama-3.3-70b-versatile';
+      const groqModel = customModel || 'llama-3.1-8b-instant';
       summary = await callOpenAICompatible(
         cleanKey,
         groqModel,

@@ -74,7 +74,7 @@ Bring your favorite LLM provider for deep, human-like architectural summaries. C
 | Provider | Supported API Keys | Recommended Default Model | Description |
 |---|---|---|---|
 | **Google Gemini** | `AQ...` / `AIzaSy...` | `gemini-3.6-flash` | Uses Google's latest official **Interactions API** with structured JSON output. |
-| **Groq** | `gsk_...` | `llama-3.3-70b-versatile` | Blazing-fast inference (500+ tokens/sec) on LPUs, completely free tier available. |
+| **Groq** | `gsk_...` | `llama-3.1-8b-instant` | Blazing-fast inference (500+ tokens/sec) on LPUs, completely free tier available. |
 | **OpenRouter** | `sk-or-...` or `sk-...` | `google/gemini-2.5-flash` / `meta-llama/llama-3.3-70b-instruct` | Unified gateway to hundreds of open-source and commercial foundation models. |
 | **Anthropic** | `sk-ant-...` | `claude-3-5-haiku-latest` | Native Claude Messages API with high analytical precision. |
 

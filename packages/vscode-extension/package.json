@@ -118,7 +118,7 @@
         "codefunc.model": {
           "type": "string",
           "default": "",
-          "description": "Optional model override (e.g. 'google/gemini-3.6-flash' on OpenRouter, 'llama-3.3-70b-versatile' on Groq, 'gemini-3.6-flash' on Gemini, or 'claude-3-5-haiku-latest' on Anthropic). Leave empty for auto-defaults."
+          "description": "Optional model override (e.g. 'google/gemini-3.6-flash' on OpenRouter, 'llama-3.1-8b-instant' on Groq, 'gemini-3.6-flash' on Gemini, or 'claude-3-5-haiku-latest' on Anthropic). Leave empty for auto-defaults."
         },
         "codefunc.persona": {
           "type": "string",
