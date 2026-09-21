@@ -29,11 +29,30 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerHoverProvider(selector, hoverProvider)
   );
 
+  // Status Bar Item: Persistent quick-access
+  const statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100
+  );
+  statusBarItem.command = 'codefunc.showQuickMenu';
+  context.subscriptions.push(statusBarItem);
+
+  const updateStatusBar = async () => {
+    const key = await secretManager.getApiKey();
+    statusBarItem.text = '$(sparkle) CodeFunc';
+    statusBarItem.tooltip = key
+      ? 'CodeFunc: Active (AI Enabled) — Click for menu'
+      : 'CodeFunc: Active (Local Offline Mode) — Click for menu';
+    statusBarItem.show();
+  };
+  await updateStatusBar();
+
   // Command: Set API Key
   context.subscriptions.push(
     vscode.commands.registerCommand('codefunc.setApiKey', async () => {
       const key = await secretManager.promptForApiKey();
       if (key) {
+        await updateStatusBar();
         provider.refresh();
       }
     })
@@ -43,6 +62,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('codefunc.clearApiKey', async () => {
       await secretManager.clearApiKey();
+      await updateStatusBar();
       provider.refresh();
     })
   );
@@ -82,6 +102,105 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  // Command: Copy Summary as Markdown
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codefunc.copySummary', async (targetUri?: vscode.Uri, targetSummary?: FileSummary) => {
+      const activeEditor = vscode.window.activeTextEditor;
+      const uri = targetUri || activeEditor?.document.uri;
+      if (!uri) {
+        vscode.window.showWarningMessage('CodeFunc: No active file to copy summary for.');
+        return;
+      }
+      const doc = vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString()) || activeEditor?.document;
+      const summary = targetSummary || (doc ? provider.getSummary(doc) : undefined);
+      if (!summary) {
+        vscode.window.showInformationMessage('CodeFunc: Summary is still being generated or file is empty.');
+        return;
+      }
+
+      const relPath = vscode.workspace.asRelativePath(uri);
+      const deps = (summary.dependencies || []).filter((d) => d && d !== 'None detected');
+      const ios = (summary.sideEffects || []).filter((s) => s && s !== 'None detected');
+      const mechanisms = (summary.keyMechanisms || []).filter((m) => m);
+
+      const mdLines = [
+        `### ⚡ CodeFunc Architectural Overview: \`${relPath}\``,
+        `**Primary Role**: ${summary.coreRole}`,
+        summary.detailedSummary ? `**Summary**: ${summary.detailedSummary}` : '',
+        deps.length > 0 ? `**Dependencies**: ${deps.join(', ')}` : '',
+        ios.length > 0 ? `**Side Effects**: ${ios.join('; ')}` : '',
+        mechanisms.length > 0 ? `**Key Mechanisms**: ${mechanisms.join(', ')}` : '',
+      ].filter(Boolean);
+
+      await vscode.env.clipboard.writeText(mdLines.join('\n\n'));
+      vscode.window.showInformationMessage('CodeFunc: Architectural summary copied to clipboard!');
+    })
+  );
+
+  // Command: Show Quick Action Menu
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codefunc.showQuickMenu', async () => {
+      const activeEditor = vscode.window.activeTextEditor;
+      const doc = activeEditor?.document;
+      const summary = doc ? provider.getSummary(doc) : undefined;
+      const hasKey = Boolean(await secretManager.getApiKey());
+      const fileName = doc ? vscode.workspace.asRelativePath(doc.uri) : '';
+
+      const items: vscode.QuickPickItem[] = [
+        {
+          label: '$(book) Open Deep Architectural Overview',
+          description: fileName || undefined,
+          detail: 'Open side-by-side architectural panel for active file',
+        },
+        {
+          label: '$(copy) Copy Summary as Markdown',
+          detail: 'Copy current file overview to clipboard',
+        },
+        {
+          label: '$(refresh) Refresh File Summary',
+          detail: 'Re-analyze current active file',
+        },
+        {
+          label: '$(key) Configure AI API Key',
+          detail: hasKey ? 'Update or replace stored API key' : 'Connect Groq, Gemini, OpenRouter, or Claude key',
+        },
+        {
+          label: '$(trash) Clear Summary Cache',
+          detail: 'Wipe all cached file summaries',
+        },
+        {
+          label: '$(gear) Open CodeFunc Settings',
+          detail: 'Configure persona, line limits, and display options',
+        },
+      ];
+
+      const pick = await vscode.window.showQuickPick(items, {
+        title: 'CodeFunc: Quick Action Menu',
+        placeHolder: 'Select a CodeFunc action',
+      });
+
+      if (!pick) return;
+
+      if (pick.label.includes('Open Deep')) {
+        if (doc) {
+          vscode.commands.executeCommand('codefunc.openDetailedOverview', doc.uri, summary);
+        } else {
+          vscode.window.showWarningMessage('CodeFunc: No active file to inspect.');
+        }
+      } else if (pick.label.includes('Copy Summary')) {
+        vscode.commands.executeCommand('codefunc.copySummary');
+      } else if (pick.label.includes('Refresh')) {
+        vscode.commands.executeCommand('codefunc.refreshSummary');
+      } else if (pick.label.includes('Configure')) {
+        vscode.commands.executeCommand('codefunc.setApiKey');
+      } else if (pick.label.includes('Clear')) {
+        vscode.commands.executeCommand('codefunc.clearCache');
+      } else if (pick.label.includes('Settings')) {
+        vscode.commands.executeCommand('workbench.action.openSettings', 'codefunc');
+      }
+    })
+  );
+
   // Command: Show File Details (when clicking the CodeLens)
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -108,6 +227,10 @@ export async function activate(context: vscode.ExtensionContext) {
           {
             label: `$(book) Open Deep Architectural Overview`,
             description: 'Open full side-by-side breakdown document',
+          },
+          {
+            label: `$(copy) Copy Summary as Markdown`,
+            description: 'Copy formatted architectural summary to clipboard',
           },
           {
             label: `$(sparkle) Role`,
@@ -139,6 +262,8 @@ export async function activate(context: vscode.ExtensionContext) {
         if (selection) {
           if (selection.label.includes('Open Deep')) {
             vscode.commands.executeCommand('codefunc.openDetailedOverview', uri, summary);
+          } else if (selection.label.includes('Copy Summary')) {
+            vscode.commands.executeCommand('codefunc.copySummary', uri, summary);
           } else if (selection.label.includes('Refresh')) {
             vscode.commands.executeCommand('codefunc.refreshSummary');
           } else if (selection.label.includes('Configure')) {
@@ -148,21 +273,6 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     )
   );
-
-  // Check on activation if API key is present; if not, prompt gently
-  secretManager.getApiKey().then((key) => {
-    if (!key) {
-      const statusBarItem = vscode.window.createStatusBarItem(
-        vscode.StatusBarAlignment.Right,
-        90
-      );
-      statusBarItem.text = '$(key) CodeFunc: Set AI API Key';
-      statusBarItem.tooltip = 'Click to configure your AI API Key (Claude, OpenRouter, Groq, Gemini) for CodeFunc file summaries';
-      statusBarItem.command = 'codefunc.setApiKey';
-      statusBarItem.show();
-      context.subscriptions.push(statusBarItem);
-    }
-  });
 }
 
 export function deactivate() {}

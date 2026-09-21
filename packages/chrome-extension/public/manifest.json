@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CodeFunc - GitHub File Overview",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "description": "Instant, non-intrusive file overview and AI summary on GitHub code files.",
   "icons": {
     "16": "icons/icon-16.png",

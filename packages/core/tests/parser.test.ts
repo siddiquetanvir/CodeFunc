@@ -129,5 +129,63 @@ services:
     assert.ok(meta.sideEffects.some((s) => s.includes('3000:3000')), 'Should detect port binding');
     assert.ok(meta.patterns?.includes('Docker Compose Multi-Service'), 'Should detect Docker Compose pattern');
   });
+
+  test('extractMetadata correctly extracts Markdown title, sections, and codeblock techs', () => {
+    const md = `
+# Awesome Project
+
+An architectural tour of the system.
+
+## Getting Started
+\`\`\`bash
+npm install
+\`\`\`
+
+## Backend Service
+\`\`\`python
+import fastapi
+\`\`\`
+
+[Official Documentation](https://example.com)
+`;
+    const meta = extractMetadata(md, 'markdown');
+    assert.ok(meta.signatures.some((s) => s.includes('Awesome Project')), 'Should extract document title');
+    assert.ok(meta.signatures.some((s) => s.includes('Getting Started')), 'Should extract sections');
+    assert.ok(meta.dependencies.includes('bash') || meta.dependencies.includes('python'), 'Should extract code block tech');
+    assert.ok(meta.sideEffects.some((s) => s.includes('documentation links')), 'Should detect external links');
+  });
+
+  test('extractMetadata correctly extracts Environment variables and detects secrets', () => {
+    const env = `
+PORT=8080
+DATABASE_URL=postgres://user:pass@localhost:5432/db
+JWT_SECRET=supersecret123
+API_KEY=key_test_xyz
+NODE_ENV=production
+`;
+    const meta = extractMetadata(env, 'env');
+    assert.ok(meta.signatures.includes('PORT'), 'Should include PORT');
+    assert.ok(meta.signatures.includes('DATABASE_URL'), 'Should include DATABASE_URL');
+    assert.ok(meta.sideEffects.some((s) => s.includes('security & authentication secrets')), 'Should detect secrets');
+  });
+
+  test('extractMetadata correctly extracts Makefile build targets and toolchains', () => {
+    const make = `
+.PHONY: all build test clean
+
+build:
+\tdocker build -t myapp .
+
+test:
+\tpytest tests/
+
+clean:
+\trm -rf dist/
+`;
+    const meta = extractMetadata(make, 'makefile');
+    assert.ok(meta.signatures.some((s) => s.includes('build')), 'Should extract build target');
+    assert.ok(meta.signatures.some((s) => s.includes('test')), 'Should extract test target');
+    assert.ok(meta.dependencies.includes('docker') || meta.dependencies.includes('pytest'), 'Should detect toolchains');
+  });
 });
 

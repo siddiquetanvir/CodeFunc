@@ -1,6 +1,6 @@
 {
   "name": "@codefunc/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Platform-agnostic engine for CodeFunc: parsing, caching, and Gemini AI summarization",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

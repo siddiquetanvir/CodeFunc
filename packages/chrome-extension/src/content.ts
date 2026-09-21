@@ -8,6 +8,7 @@ const ICONS = {
   package: `<svg class="codefunc-tag-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="m8.878.392 5.25 3.045c.54.314.872.89.872 1.514v6.098a1.75 1.75 0 0 1-.872 1.514l-5.25 3.045a1.75 1.75 0 0 1-1.756 0l-5.25-3.045A1.75 1.75 0 0 1 1 11.049V4.951c0-.624.332-1.201.872-1.514L7.122.392a1.75 1.75 0 0 1 1.756 0ZM7.875 1.69l-4.63 2.685L8 7.133l4.755-2.758-4.63-2.685a.248.248 0 0 0-.25 0ZM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432Zm11 5.372V5.677L8.75 8.432v5.516l4.625-2.683a.25.25 0 0 0 .125-.216Z"/></svg>`,
   arrowSwap: `<svg class="codefunc-tag-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M5.22 1.47a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-2.25 2.25a.749.749 0 0 1-1.275-.53V4.75H1.75a.75.75 0 0 1 0-1.5h3.47V1.75a.75.75 0 0 1 0-1.06Zm5.56 8.28a.749.749 0 0 1 1.275.53v1.75h3.47a.75.75 0 0 1 0 1.5h-3.47v1.75a.75.75 0 0 1-1.06.53l-2.25-2.25a.75.75 0 0 1 0-1.06l2.035-2.035Z"/></svg>`,
   cpu: `<svg class="codefunc-tag-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M6 2.75a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 .75.75v1.5h1.5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-.75.75h-1.5v1.5a.75.75 0 0 1-.75.75h-1.5v1.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1-.75-.75v-1.5h-1.5a.75.75 0 0 1-.75-.75v-1.5h-1.5a.75.75 0 0 1-.75-.75v-2.5a.75.75 0 0 1 .75-.75h1.5v-1.5a.75.75 0 0 1 .75-.75h1.5V2.75Zm.75.75v1.5a.75.75 0 0 1-.75.75h-1.5v2.5h1.5a.75.75 0 0 1 .75.75v1.5h2.5v-1.5a.75.75 0 0 1 .75-.75h1.5v-2.5h-1.5a.75.75 0 0 1-.75-.75v-1.5h-2.5Z"/></svg>`,
+  copy: `<svg class="codefunc-copy-icon" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>`,
 };
 
 function getFileLanguage(filePath: string): string {
@@ -17,6 +18,12 @@ function getFileLanguage(filePath: string): string {
   }
   if (baseName.includes('docker-compose') || baseName.includes('compose.yaml') || baseName.includes('compose.yml')) {
     return 'yaml';
+  }
+  if (baseName === 'makefile' || baseName.endsWith('.mk')) {
+    return 'makefile';
+  }
+  if (baseName.startsWith('.env') || baseName === 'env') {
+    return 'env';
   }
   const ext = filePath.split('.').pop()?.toLowerCase() || '';
   const map: Record<string, string> = {
@@ -43,6 +50,15 @@ function getFileLanguage(filePath: string): string {
     jsonc: 'jsonc',
     toml: 'toml',
     sql: 'sql',
+    md: 'markdown',
+    markdown: 'markdown',
+    mdx: 'markdown',
+    env: 'env',
+    makefile: 'makefile',
+    mk: 'makefile',
+    graphql: 'graphql',
+    gql: 'graphql',
+    prisma: 'prisma',
   };
   return map[ext] || 'plaintext';
 }
@@ -170,9 +186,15 @@ async function runCodeFunc() {
       banner.className = 'codefunc-banner';
       banner.innerHTML = `
         <div class="codefunc-header">
-          <div class="codefunc-title">
-            ${ICONS.sparkle}
-            <span class="codefunc-role-text">${escapeHtml(s.coreRole)}</span>
+          <div class="codefunc-top-row">
+            <div class="codefunc-title">
+              ${ICONS.sparkle}
+              <span class="codefunc-role-text">${escapeHtml(s.coreRole)}</span>
+            </div>
+            <button class="codefunc-copy-btn" id="codefunc-copy-btn" title="Copy architectural summary as Markdown">
+              ${ICONS.copy}
+              <span id="codefunc-copy-label">Copy</span>
+            </button>
           </div>
           ${s.detailedSummary ? `<div class="codefunc-desc">${escapeHtml(s.detailedSummary)}</div>` : ''}
           <div class="codefunc-meta">
@@ -182,6 +204,32 @@ async function runCodeFunc() {
           </div>
         </div>
       `;
+
+      // Copy summary listener
+      const copyBtn = banner.querySelector('#codefunc-copy-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+          const mdText = [
+            `### ⚡ ${filePath}`,
+            `**Role**: ${s.coreRole}`,
+            s.detailedSummary ? `**Summary**: ${s.detailedSummary}` : '',
+            deps ? `**Dependencies**: ${deps}` : '',
+            io ? `**Side Effects**: ${io}` : '',
+            s.keyMechanisms && s.keyMechanisms.length > 0 ? `**Key Mechanisms**: ${s.keyMechanisms.slice(0, 2).join(', ')}` : '',
+          ].filter(Boolean).join('\n\n');
+
+          try {
+            await navigator.clipboard.writeText(mdText);
+            const label = banner.querySelector('#codefunc-copy-label');
+            if (label) {
+              label.textContent = 'Copied!';
+              setTimeout(() => { label.textContent = 'Copy'; }, 2000);
+            }
+          } catch (e) {
+            // Fallback if clipboard API blocked
+          }
+        });
+      }
     } else {
       banner.remove();
     }

@@ -302,6 +302,9 @@ function generateSmartLocalSummary(
   const isShell = lowerLang === 'shellscript' || lowerLang === 'bash' || lowerLang === 'sh' || lowerLang === 'zsh';
   const isJson = lowerLang === 'json' || lowerLang === 'jsonc';
   const isSql = lowerLang === 'sql' || mechanisms.includes('SQL Database Operations');
+  const isMarkdown = lowerLang === 'markdown' || lowerLang === 'md' || lowerLang === 'mdx' || mechanisms.includes('Technical Documentation');
+  const isEnv = lowerLang === 'env' || lowerLang === 'dotenv' || lowerBase.startsWith('.env') || mechanisms.includes('Environment Configuration');
+  const isMakefile = lowerLang === 'makefile' || lowerLang === 'make' || lowerBase === 'makefile' || mechanisms.includes('Makefile Build Automation');
 
   if (metadata.leadComment) {
     role = metadata.leadComment;
@@ -382,6 +385,42 @@ function generateSmartLocalSummary(
     }
     if (metadata.sideEffects.length > 0) {
       parts.push(`Handles ${metadata.sideEffects.join(' and ')}.`);
+    }
+  } else if (isMarkdown) {
+    const docTitle = metadata.signatures.find((s) => s.startsWith('Title: '))?.replace('Title: ', '');
+    const sections = metadata.signatures.filter((s) => s.startsWith('Section: ')).map((s) => s.replace('Section: ', ''));
+    role = docTitle ? `Documentation: ${docTitle}` : `Technical documentation (${baseName || 'docs'})`;
+    parts.push(role + '.');
+    if (sections.length > 0) {
+      parts.push(`Covers key sections: ${sections.slice(0, 4).join(', ')}.`);
+    }
+    if (metadata.dependencies.length > 0) {
+      parts.push(`Includes code examples for ${metadata.dependencies.slice(0, 4).join(', ')}.`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(metadata.sideEffects.join('. ') + '.');
+    }
+  } else if (isEnv) {
+    const varCount = metadata.signatures.length;
+    role = `Environment configuration (${varCount} variables)`;
+    parts.push(role + '.');
+    if (metadata.dependencies.length > 0) {
+      parts.push(`Configures runtime services: ${metadata.dependencies.slice(0, 5).join(', ')}.`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(metadata.sideEffects.join('. ') + '.');
+    }
+  } else if (isMakefile) {
+    const targets = metadata.signatures.map((s) => s.replace('Target: ', ''));
+    role = targets.length > 0
+      ? `Makefile build automation (${targets.slice(0, 4).join(', ')})`
+      : 'Makefile build and automation workflow';
+    parts.push(role + '.');
+    if (metadata.dependencies.length > 0) {
+      parts.push(`Leverages toolchains: ${metadata.dependencies.slice(0, 5).join(', ')}.`);
+    }
+    if (metadata.sideEffects.length > 0) {
+      parts.push(metadata.sideEffects.join('. ') + '.');
     }
   } else if (mechanisms.length > 0) {
     role = mechanisms.slice(0, 2).join(' & ');

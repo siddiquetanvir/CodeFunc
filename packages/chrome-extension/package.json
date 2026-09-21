@@ -1,12 +1,12 @@
 {
   "name": "codefunc-chrome",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CodeFunc Chrome extension for GitHub file overviews",
   "license": "AGPL-3.0-only",
   "scripts": {
     "build": "node build.js",
     "watch": "node build.js --watch",
-    "package": "node build.js && cd dist && zip -FS -r ../codefunc-chrome-v0.1.0.zip . -x '*.DS_Store'"
+    "package": "node build.js && cd dist && zip -FS -r ../codefunc-chrome-v1.0.1.zip . -x '*.DS_Store'"
   },
   "dependencies": {
     "@codefunc/core": "*"

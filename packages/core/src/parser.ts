@@ -57,6 +57,19 @@ export function extractMetadata(code: string, languageId?: string): ExtractedMet
     case 'java':
     case 'c':
     case 'cpp':
+    case 'markdown':
+    case 'md':
+    case 'mdx':
+      result = parseMarkdown(code);
+      break;
+    case 'env':
+    case 'dotenv':
+      result = parseEnv(code);
+      break;
+    case 'makefile':
+    case 'make':
+      result = parseMakefile(code);
+      break;
     case 'csharp':
     case 'cs':
       result = parseCStyle(code);
@@ -67,6 +80,12 @@ export function extractMetadata(code: string, languageId?: string): ExtractedMet
         result = parseDocker(code);
       } else if (/^\s*#!\/(?:usr\/)?bin\/(?:env\s+)?(?:bash|sh|zsh)/m.test(code)) {
         result = parseShell(code);
+      } else if (/^[a-zA-Z0-9_-]+:\s*(?:#.*)?$/m.test(code) && /^\t/m.test(code)) {
+        result = parseMakefile(code);
+      } else if (/^[A-Z0-9_]+\s*=/m.test(code) && !/import\s+|function\s+|const\s+|let\s+/m.test(code)) {
+        result = parseEnv(code);
+      } else if (/^#\s+[^\n]+/m.test(code) && code.includes('## ')) {
+        result = parseMarkdown(code);
       } else {
         result = parseGeneric(code);
       }
@@ -140,6 +159,15 @@ function detectPatterns(code: string): string[] {
   }
   if (/\b(?:CREATE\s+TABLE|SELECT\s+.*?\s+FROM|INSERT\s+INTO)\b/is.test(code)) {
     patterns.push('SQL Database Operations');
+  }
+  if (/^#\s+[^\n]+/m.test(code) && code.includes('## ')) {
+    patterns.push('Technical Documentation');
+  }
+  if (/^[A-Z0-9_]+\s*=/m.test(code) && !/class\s+|function\s+/.test(code)) {
+    patterns.push('Environment Configuration');
+  }
+  if (/^[a-zA-Z0-9_.-]+:\s*.*(?:\n\t+.*)+/m.test(code)) {
+    patterns.push('Makefile Build Automation');
   }
   return patterns;
 }
@@ -663,5 +691,118 @@ function parseSql(code: string): ExtractedMetadata {
     dependencies: Array.from(dependencies).slice(0, 10),
     sideEffects: Array.from(sideEffects).slice(0, 6),
     signatures: signatures.slice(0, 6),
+  };
+}
+
+function parseMarkdown(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  const lines = code.split('\n');
+  let title = '';
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (/^#\s+(.+)/.test(trimmed) && !title) {
+      title = trimmed.replace(/^#\s+/, '').trim();
+      signatures.push(`Title: ${title}`);
+    } else if (/^##\s+(.+)/.test(trimmed) && signatures.length < 8) {
+      signatures.push(`Section: ${trimmed.replace(/^##\s+/, '').trim()}`);
+    }
+  }
+
+  const codeBlockRegex = /```([a-zA-Z0-9_-]+)/g;
+  let cbMatch: RegExpExecArray | null;
+  while ((cbMatch = codeBlockRegex.exec(code)) !== null) {
+    const tech = cbMatch[1].toLowerCase();
+    if (tech && tech !== 'text' && tech !== 'plaintext') {
+      dependencies.add(tech);
+    }
+  }
+
+  if (/\[.*?\]\(https?:\/\/[^\)]+\)/.test(code)) {
+    sideEffects.add('References external documentation links');
+  }
+  if (/!\[.*?\]\([^\)]+\)/.test(code)) {
+    sideEffects.add('Embeds visual architecture diagrams');
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 8),
+  };
+}
+
+function parseEnv(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  const lines = code.split('\n');
+  let secretCount = 0;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const match = /^([A-Z0-9_]+)\s*=/i.exec(trimmed);
+    if (match) {
+      const key = match[1];
+      signatures.push(key);
+      if (/SECRET|KEY|TOKEN|PASSWORD|AUTH|CREDENTIAL|PRIVATE/i.test(key)) {
+        secretCount++;
+      }
+      if (/PORT|HOST|URL|DATABASE|REDIS|MONGO|POSTGRES|S3|BUCKET/i.test(key)) {
+        dependencies.add(key.split('_')[0].toLowerCase());
+      }
+    }
+  }
+
+  if (secretCount > 0) {
+    sideEffects.add(`Configures ${secretCount} security & authentication secrets`);
+  }
+  if (signatures.length > 0) {
+    sideEffects.add(`Exposes ${signatures.length} runtime environment variables`);
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 10),
+  };
+}
+
+function parseMakefile(code: string): ExtractedMetadata {
+  const dependencies = new Set<string>();
+  const sideEffects = new Set<string>();
+  const signatures: string[] = [];
+
+  const lines = code.split('\n');
+  for (const line of lines) {
+    const targetMatch = /^([a-zA-Z0-9_.-]+)\s*:(?!=)/.exec(line);
+    if (targetMatch) {
+      const target = targetMatch[1];
+      if (target !== '.PHONY' && !signatures.some((s) => s.includes(target))) {
+        signatures.push(`Target: ${target}`);
+      }
+    }
+    if (/^\t.*?\b(docker|kubectl|gcc|clang|cargo|go|npm|pnpm|yarn|pytest|make|pip)\b/i.test(line)) {
+      const toolMatch = /\b(docker|kubectl|gcc|clang|cargo|go|npm|pnpm|yarn|pytest|make|pip)\b/i.exec(line);
+      if (toolMatch) {
+        dependencies.add(toolMatch[1].toLowerCase());
+      }
+    }
+  }
+
+  if (signatures.length > 0) {
+    sideEffects.add(`Orchestrates build targets (${signatures.slice(0, 3).map((s) => s.replace('Target: ', '')).join(', ')})`);
+  }
+
+  return {
+    dependencies: Array.from(dependencies).slice(0, 10),
+    sideEffects: Array.from(sideEffects).slice(0, 6),
+    signatures: signatures.slice(0, 8),
   };
 }

@@ -28,7 +28,7 @@ Since the extension can be run directly in Developer Mode on Google Chrome, Brav
 
 ### Method 1: Using Pre-Packaged Release (No Node.js Required)
 
-1. Download [`codefunc-chrome-v0.1.0.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from the Releases page (or from this repository under `packages/chrome-extension/`).
+1. Download [`codefunc-chrome-v1.0.1.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from the Releases page (or from this repository under `packages/chrome-extension/`).
 2. Extract/unzip the `.zip` archive into a folder on your computer.
 3. Open your Chromium-based browser (Chrome, Brave, Edge, Arc) and go to the extensions management page:
    - **Chrome / Brave / Arc**: `chrome://extensions`

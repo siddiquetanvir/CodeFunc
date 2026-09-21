@@ -2,7 +2,7 @@
   "name": "codefunc-vscode",
   "displayName": "CodeFunc - File Overview",
   "description": "Non-intrusive, zero-click file state overview powered by Gemini AI and local static extraction",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "TanvirSdq",
   "icon": "media/logo.png",
   "license": "AGPL-3.0-only",
@@ -82,6 +82,16 @@
       {
         "command": "codefunc.openDetailedOverview",
         "title": "CodeFunc: Open Deep Architectural Overview",
+        "category": "CodeFunc"
+      },
+      {
+        "command": "codefunc.copySummary",
+        "title": "CodeFunc: Copy File Summary as Markdown",
+        "category": "CodeFunc"
+      },
+      {
+        "command": "codefunc.showQuickMenu",
+        "title": "CodeFunc: Show Quick Action Menu",
         "category": "CodeFunc"
       }
     ],
