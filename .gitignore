@@ -1,5 +1,6 @@
 node_modules/
 dist/
+**/dist/
 dist-test/
 out/
 .vscode-test/
@@ -9,3 +10,4 @@ out/
 .env.local
 .DS_Store
 .playwright-mcp/
+

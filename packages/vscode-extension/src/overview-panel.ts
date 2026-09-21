@@ -1,42 +1,48 @@
-import * as vscode from 'vscode';
-import { FileSummary } from '@codefunc/core';
-import * as path from 'path';
+import * as vscode from "vscode"
+import { FileSummary } from "@codefunc/core/src"
+import * as path from "path"
 
 export class CodeFuncOverviewPanel {
-  public static currentPanel: CodeFuncOverviewPanel | undefined;
-  private readonly _panel: vscode.WebviewPanel;
-  private readonly _extensionUri: vscode.Uri;
-  private _disposables: vscode.Disposable[] = [];
+  public static currentPanel: CodeFuncOverviewPanel | undefined
+  private readonly _panel: vscode.WebviewPanel
+  private readonly _extensionUri: vscode.Uri
+  private _disposables: vscode.Disposable[] = []
 
   public static render(
     extensionUri: vscode.Uri,
     uri: vscode.Uri,
     summary: FileSummary | undefined,
-    hasApiKey: boolean
+    hasApiKey: boolean,
   ) {
     const column = vscode.window.activeTextEditor
       ? vscode.ViewColumn.Beside
-      : vscode.ViewColumn.One;
+      : vscode.ViewColumn.One
 
-    const title = `CodeFunc: ${path.basename(uri.fsPath)}`;
+    const title = `CodeFunc: ${path.basename(uri.fsPath)}`
 
     if (CodeFuncOverviewPanel.currentPanel) {
-      CodeFuncOverviewPanel.currentPanel._panel.reveal(column);
-      CodeFuncOverviewPanel.currentPanel._update(uri, summary, hasApiKey);
-      return;
+      CodeFuncOverviewPanel.currentPanel._panel.reveal(column)
+      CodeFuncOverviewPanel.currentPanel._update(uri, summary, hasApiKey)
+      return
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'codefuncOverview',
+      "codefuncOverview",
       title,
       column,
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-      }
-    );
+      },
+    )
 
-    CodeFuncOverviewPanel.currentPanel = new CodeFuncOverviewPanel(panel, extensionUri, uri, summary, hasApiKey);
+    CodeFuncOverviewPanel.currentPanel = new CodeFuncOverviewPanel(
+      panel,
+      extensionUri,
+      uri,
+      summary,
+      hasApiKey,
+    )
   }
 
   private constructor(
@@ -44,14 +50,14 @@ export class CodeFuncOverviewPanel {
     extensionUri: vscode.Uri,
     uri: vscode.Uri,
     summary: FileSummary | undefined,
-    hasApiKey: boolean
+    hasApiKey: boolean,
   ) {
-    this._panel = panel;
-    this._extensionUri = extensionUri;
+    this._panel = panel
+    this._extensionUri = extensionUri
 
-    this._update(uri, summary, hasApiKey);
+    this._update(uri, summary, hasApiKey)
 
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
 
     this._panel.webview.onDidReceiveMessage(
       (message) => {
@@ -77,29 +83,42 @@ export class CodeFuncOverviewPanel {
         }
       },
       null,
-      this._disposables
-    );
+      this._disposables,
+    )
   }
 
-  public update(uri: vscode.Uri, summary: FileSummary | undefined, hasApiKey: boolean) {
-    this._update(uri, summary, hasApiKey);
+  public update(
+    uri: vscode.Uri,
+    summary: FileSummary | undefined,
+    hasApiKey: boolean,
+  ) {
+    this._update(uri, summary, hasApiKey)
   }
 
-  private _update(uri: vscode.Uri, summary: FileSummary | undefined, hasApiKey: boolean) {
-    const webview = this._panel.webview;
-    const fileName = path.basename(uri.fsPath);
-    const relPath = vscode.workspace.asRelativePath(uri);
-    this._panel.title = `CodeFunc: ${fileName}`;
-    this._panel.webview.html = this._getHtmlForWebview(webview, relPath, summary, hasApiKey);
+  private _update(
+    uri: vscode.Uri,
+    summary: FileSummary | undefined,
+    hasApiKey: boolean,
+  ) {
+    const webview = this._panel.webview
+    const fileName = path.basename(uri.fsPath)
+    const relPath = vscode.workspace.asRelativePath(uri)
+    this._panel.title = `CodeFunc: ${fileName}`
+    this._panel.webview.html = this._getHtmlForWebview(
+      webview,
+      relPath,
+      summary,
+      hasApiKey,
+    )
   }
 
   public dispose() {
-    CodeFuncOverviewPanel.currentPanel = undefined;
-    this._panel.dispose();
+    CodeFuncOverviewPanel.currentPanel = undefined
+    this._panel.dispose()
     while (this._disposables.length) {
-      const x = this._disposables.pop();
+      const x = this._disposables.pop()
       if (x) {
-        x.dispose();
+        x.dispose()
       }
     }
   }
@@ -108,14 +127,20 @@ export class CodeFuncOverviewPanel {
     webview: vscode.Webview,
     filePath: string,
     summary: FileSummary | undefined,
-    hasApiKey: boolean
+    hasApiKey: boolean,
   ): string {
-    const role = summary?.coreRole || 'Analyzing module architecture...';
-    const desc = summary?.detailedSummary || '';
-    const deps = (summary?.dependencies || []).filter((d) => d && d !== 'None detected');
-    const ios = (summary?.sideEffects || []).filter((s) => s && s !== 'None detected');
-    const mechanisms = (summary?.keyMechanisms || []).filter((m) => m);
-    const errorInfo = summary?.error ? this._formatHumanError(summary.error) : null;
+    const role = summary?.coreRole || "Analyzing module architecture..."
+    const desc = summary?.detailedSummary || ""
+    const deps = (summary?.dependencies || []).filter(
+      (d) => d && d !== "None detected",
+    )
+    const ios = (summary?.sideEffects || []).filter(
+      (s) => s && s !== "None detected",
+    )
+    const mechanisms = (summary?.keyMechanisms || []).filter((m) => m)
+    const errorInfo = summary?.error
+      ? this._formatHumanError(summary.error)
+      : null
 
     // SVG Octicons (crisp, modern vector graphics matching Chrome extension)
     const sparkleSvg = `<svg class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M7.53 1.282a.5.5 0 0 1 .94 0l.91 2.825a2.5 2.5 0 0 0 1.624 1.624l2.825.91a.5.5 0 0 1 0 .94l-2.825.91a2.5 2.5 0 0 0-1.624 1.624l-.91 2.825a.5.5 0 0 1-.94 0l-.91-2.825a2.5 2.5 0 0 0-1.624-1.624l-2.825-.91a.5.5 0 0 1 0-.94l2.825-.91a2.5 2.5 0 0 0 1.624-1.624l.91-2.825Z"></path></svg>`;
@@ -409,11 +434,11 @@ export class CodeFuncOverviewPanel {
                 ? `<div class="banner-api-tip" style="color: var(--vscode-editorWarning-foreground, #fbbf24);">
                     ${errorInfo.tip}
                   </div>`
-                : ''
+                : ""
             }
           </div>`
         : !hasApiKey
-        ? `<div class="banner-api" style="background: var(--vscode-inputValidation-warningBackground, rgba(245, 158, 11, 0.08)); border: 1px solid var(--vscode-inputValidation-warningBorder, rgba(245, 158, 11, 0.3));">
+          ? `<div class="banner-api" style="background: var(--vscode-inputValidation-warningBackground, rgba(245, 158, 11, 0.08)); border: 1px solid var(--vscode-inputValidation-warningBorder, rgba(245, 158, 11, 0.3));">
             <div class="banner-api-header">
               <span class="banner-api-title" style="color: var(--vscode-editorWarning-foreground, #fbbf24);">
                 💡 Using Local Static Inspection
@@ -426,7 +451,7 @@ export class CodeFuncOverviewPanel {
               Connect a Gemini, Groq, or OpenRouter API Key for automated deep architectural reasoning.
             </p>
           </div>`
-        : ''
+          : ""
     }
 
     <div class="card">
@@ -435,34 +460,34 @@ export class CodeFuncOverviewPanel {
         <h2 class="role-title">${role}</h2>
       </div>
 
-      ${desc ? `<div class="flow-desc">${desc}</div>` : ''}
+      ${desc ? `<div class="flow-desc">${desc}</div>` : ""}
 
       <div class="meta-group">
         ${
           deps.length > 0
             ? `<div class="meta-row">
                 <span class="meta-label">Dependencies</span>
-                ${deps.map((d) => `<span class="tag">${packageSvg} ${d}</span>`).join('')}
+                ${deps.map((d) => `<span class="tag">${packageSvg} ${d}</span>`).join("")}
               </div>`
-            : ''
+            : ""
         }
 
         ${
           ios.length > 0
             ? `<div class="meta-row">
                 <span class="meta-label">Side Effects</span>
-                ${ios.map((io) => `<span class="tag">${arrowSwapSvg} ${io}</span>`).join('')}
+                ${ios.map((io) => `<span class="tag">${arrowSwapSvg} ${io}</span>`).join("")}
               </div>`
-            : ''
+            : ""
         }
 
         ${
           mechanisms.length > 0
             ? `<div class="meta-row">
                 <span class="meta-label">Algorithms</span>
-                ${mechanisms.map((m) => `<span class="tag">${circuitSvg} ${m}</span>`).join('')}
+                ${mechanisms.map((m) => `<span class="tag">${circuitSvg} ${m}</span>`).join("")}
               </div>`
-            : ''
+            : ""
         }
       </div>
     </div>
@@ -476,7 +501,7 @@ export class CodeFuncOverviewPanel {
         ${refreshSvg} Refresh
       </button>
       <button class="btn" onclick="sendMessage('setApiKey')">
-        ${keySvg} ${hasApiKey ? 'Change API Key' : 'Configure API Key'}
+        ${keySvg} ${hasApiKey ? "Change API Key" : "Configure API Key"}
       </button>
       <button class="btn" onclick="sendMessage('openSettings')">
         Settings
@@ -509,21 +534,25 @@ export class CodeFuncOverviewPanel {
     });
   </script>
 </body>
-</html>`;
+</html>`
   }
 
-  private _formatHumanError(rawError: string): { title: string; message: string; tip?: string } {
+  private _formatHumanError(rawError: string): {
+    title: string
+    message: string
+    tip?: string
+  } {
     try {
-      let parsed: any = null;
-      if (rawError.includes('{') && rawError.includes('}')) {
-        const start = rawError.indexOf('{');
-        const end = rawError.lastIndexOf('}') + 1;
-        parsed = JSON.parse(rawError.slice(start, end));
+      let parsed: any = null
+      if (rawError.includes("{") && rawError.includes("}")) {
+        const start = rawError.indexOf("{")
+        const end = rawError.lastIndexOf("}") + 1
+        parsed = JSON.parse(rawError.slice(start, end))
       }
 
-      const errObj = parsed?.error || parsed;
-      const code = errObj?.code || errObj?.status;
-      const msg: string = errObj?.message || rawError;
+      const errObj = parsed?.error || parsed
+      const code = errObj?.code || errObj?.status
+      const msg: string = errObj?.message || rawError
 
       // 1. Rate Limits (429)
       if (code === 429 || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('resource_exhausted')) {
@@ -576,19 +605,18 @@ export class CodeFuncOverviewPanel {
           tip: 'Check your model configuration in Settings or leave it empty for auto-defaults.',
         };
       }
-
       return {
-        title: '⚠️ AI Connection Issue',
-        message: msg.length > 200 ? msg.slice(0, 200) + '...' : msg,
-        tip: 'Displaying local structural extraction instead.',
-      };
+        title: "⚠️ AI Connection Issue",
+        message: msg.length > 200 ? msg.slice(0, 200) + "..." : msg,
+        tip: "Displaying local structural extraction instead.",
+      }
     } catch {
       return {
-        title: '⚠️ AI Connection Issue',
-        message: rawError.length > 200 ? rawError.slice(0, 200) + '...' : rawError,
-        tip: 'Displaying local structural extraction instead.',
-      };
+        title: "⚠️ AI Connection Issue",
+        message:
+          rawError.length > 200 ? rawError.slice(0, 200) + "..." : rawError,
+        tip: "Displaying local structural extraction instead.",
+      }
     }
   }
 }
-

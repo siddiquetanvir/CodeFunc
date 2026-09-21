@@ -8,9 +8,6 @@
     "watch": "node build.js --watch",
     "package": "node build.js && cd dist && zip -FS -r ../codefunc-chrome-v1.0.1.zip . -x '*.DS_Store'"
   },
-  "dependencies": {
-    "@codefunc/core": "*"
-  },
   "devDependencies": {
     "@types/chrome": "^0.0.268",
     "esbuild": "^0.28.2",
