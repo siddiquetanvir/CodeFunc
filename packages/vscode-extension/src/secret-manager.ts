@@ -2,6 +2,14 @@ import * as vscode from 'vscode';
 
 const SECRET_KEY = 'codefunc.geminiApiKey';
 
+function cleanApiKey(key: string): string {
+  return (key || '')
+    .trim()
+    .replace(/^Bearer\s+/i, '')
+    .replace(/^["']+|["']+$/g, '')
+    .trim();
+}
+
 export class SecretManager {
   constructor(private context: vscode.ExtensionContext) {}
 
@@ -12,7 +20,7 @@ export class SecretManager {
   async getApiKey(): Promise<string | undefined> {
     const secret = await this.context.secrets.get(SECRET_KEY);
     if (secret && secret.trim()) {
-      return secret.trim();
+      return cleanApiKey(secret);
     }
 
     const envKey =
@@ -21,7 +29,7 @@ export class SecretManager {
       process.env.GROQ_API_KEY ||
       process.env.GEMINI_API_KEY;
     if (envKey && envKey.trim()) {
-      return envKey.trim();
+      return cleanApiKey(envKey);
     }
 
     return undefined;
@@ -46,9 +54,10 @@ export class SecretManager {
     });
 
     if (input) {
-      await this.context.secrets.store(SECRET_KEY, input.trim());
+      const cleaned = cleanApiKey(input);
+      await this.context.secrets.store(SECRET_KEY, cleaned);
       vscode.window.showInformationMessage('CodeFunc: API key saved securely in SecretStorage.');
-      return input.trim();
+      return cleaned;
     }
 
     return undefined;

@@ -114,21 +114,37 @@ Return a JSON object conforming strictly to the requested schema.
 - sideEffects: Files read/written, network APIs, or database/console I/O invoked.`;
 
   try {
-    const resolvedProvider = detectProvider(apiKey, options.provider);
+    const cleanKey = (apiKey || '')
+      .trim()
+      .replace(/^Bearer\s+/i, '')
+      .replace(/^["']+|["']+$/g, '')
+      .trim();
+
+    const resolvedProvider = detectProvider(cleanKey, options.provider);
     let summary: FileSummary;
 
+    // Determine if custom model was explicitly set (and not Gemini internal default)
+    const isGeminiDefaultSlug = !model || model === 'gemini-3.6-flash' || model === 'gemini-2.5-flash' || model === 'gemini-flash-latest';
+    const customModel = isGeminiDefaultSlug ? undefined : model.trim();
+
     if (resolvedProvider === 'groq') {
+      const groqModel = customModel || 'llama-3.3-70b-versatile';
       summary = await callOpenAICompatible(
-        apiKey,
-        model && model !== 'gemini-2.5-flash' && model !== 'gemini-flash-latest' ? model : 'llama-3.3-70b-versatile',
+        cleanKey,
+        groqModel,
         'https://api.groq.com/openai/v1/chat/completions',
         prompt,
         metadata
       );
     } else if (resolvedProvider === 'openrouter') {
+      let openRouterModel = customModel || 'google/gemini-2.5-flash';
+      // Auto-prefix google/ if user provided a gemini model name without vendor namespace
+      if (!openRouterModel.includes('/') && openRouterModel.startsWith('gemini-')) {
+        openRouterModel = `google/${openRouterModel}`;
+      }
       summary = await callOpenAICompatible(
-        apiKey,
-        model && model !== 'gemini-2.5-flash' && model !== 'gemini-flash-latest' ? model : 'google/gemini-2.5-flash',
+        cleanKey,
+        openRouterModel,
         'https://openrouter.ai/api/v1/chat/completions',
         prompt,
         metadata,
@@ -138,14 +154,15 @@ Return a JSON object conforming strictly to the requested schema.
         }
       );
     } else if (resolvedProvider === 'anthropic') {
+      const anthropicModel = customModel || 'claude-3-5-haiku-latest';
       summary = await callAnthropicNative(
-        apiKey,
-        model && model !== 'gemini-2.5-flash' && model !== 'gemini-flash-latest' ? model : 'claude-3-5-haiku-latest',
+        cleanKey,
+        anthropicModel,
         prompt,
         metadata
       );
     } else {
-      summary = await callGemini(apiKey, model, prompt, metadata);
+      summary = await callGemini(cleanKey, model, prompt, metadata);
     }
 
     summary.timestamp = Date.now();

@@ -525,29 +525,55 @@ export class CodeFuncOverviewPanel {
       const code = errObj?.code || errObj?.status;
       const msg: string = errObj?.message || rawError;
 
+      // 1. Rate Limits (429)
       if (code === 429 || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('resource_exhausted')) {
         const retryMatch = /retry in ([\d.]+s?)/i.exec(msg);
         const retryText = retryMatch ? ` (retry in ${retryMatch[1]})` : '';
         return {
-          title: '⚠️ Gemini Rate Limit Exceeded (429)',
-          message: `Google Gemini Free Tier allows 5 requests per minute${retryText}. Opening multiple files quickly exhausts this quota.`,
-          tip: '💡 Tip: To avoid rate limits, click "Switch / Update Key" and use an OpenRouter or Groq key (free 30 req/min)!',
+          title: '⚠️ Provider Rate Limit Exceeded (429)',
+          message: `API request quota exceeded${retryText}. Opening multiple files quickly exhausts free tier limits.`,
+          tip: '💡 Tip: To avoid rate limits, click "Switch / Update Key" and connect a free Groq key (console.groq.com) for 30 requests/min!',
         };
       }
 
-      if (code === 404 || msg.toLowerCase().includes('not found')) {
+      // 2. Authentication & Invalid Key (401, 403, "User not found")
+      if (
+        code === 401 ||
+        code === 403 ||
+        msg.toLowerCase().includes('user not found') ||
+        msg.toLowerCase().includes('api_key_invalid') ||
+        msg.toLowerCase().includes('unauthorized') ||
+        msg.toLowerCase().includes('invalid api key')
+      ) {
+        if (msg.toLowerCase().includes('user not found')) {
+          return {
+            title: '⚠️ OpenRouter API Key Not Found (401)',
+            message: 'OpenRouter returned "User not found". The API key is invalid, deleted, or was copied incompletely.',
+            tip: '💡 Tip: Go to https://openrouter.ai/keys, create a new key (starts with "sk-or-v1-..."), ensure your account email is confirmed, and click "Switch / Update Key". Alternatively, use a 100% free Groq key from https://console.groq.com!',
+          };
+        }
         return {
-          title: '⚠️ Model Not Available',
+          title: '⚠️ Invalid API Key (401)',
+          message: msg.slice(0, 160) || 'The API key provided was not accepted by the AI provider.',
+          tip: 'Click "Switch / Update Key" to enter a valid API key (Groq, Gemini, OpenRouter, or Anthropic).',
+        };
+      }
+
+      // 3. Payment Required / Credits Exhausted (402)
+      if (code === 402 || msg.toLowerCase().includes('credit') || msg.toLowerCase().includes('payment')) {
+        return {
+          title: '⚠️ Provider Credits Required (402)',
+          message: 'Your account has no remaining balance or credits to run this model on OpenRouter.',
+          tip: '💡 Tip: Connect a 100% free Groq key (console.groq.com), or add credits at openrouter.ai/credits.',
+        };
+      }
+
+      // 4. Model Not Found (404)
+      if (code === 404 || (msg.toLowerCase().includes('model') && msg.toLowerCase().includes('not found'))) {
+        return {
+          title: '⚠️ Model Not Available (404)',
           message: msg.slice(0, 160),
           tip: 'Check your model configuration in Settings or leave it empty for auto-defaults.',
-        };
-      }
-
-      if (code === 401 || code === 403 || msg.toLowerCase().includes('api_key_invalid')) {
-        return {
-          title: '⚠️ Invalid API Key',
-          message: 'The API key provided was not accepted by the provider.',
-          tip: 'Click "Switch / Update Key" to enter a valid API key.',
         };
       }
 
