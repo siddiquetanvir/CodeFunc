@@ -5,7 +5,7 @@
 CodeFunc for Chrome brings the power of CodeFunc directly into your browser when exploring code on GitHub. As you browse repositories, pull requests, or commits on `github.com`, CodeFunc passively renders a clean, single-line glance banner right above the file content:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/bfb3a770-0049-41d7-85d2-92ff9901ca43" alt="CodeFunc Chrome Extension Overview on GitHub" width="900" />
+  <img src="https://github.com/user-attachments/assets/34b789a1-4d74-429e-8a6b-fbb4625090d9" alt="CodeFunc Chrome Extension Overview on GitHub" width="900" />
   <br />
   <em>🌐 CodeFunc in action on GitHub: Instant architectural overview banner directly above repository code.</em>
 </p>

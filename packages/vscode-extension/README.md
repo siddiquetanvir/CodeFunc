@@ -6,9 +6,10 @@
 
 **Non-intrusive, zero-click architectural file overviews for VS Code.**
 
-[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/TanvirSdq.codefunc-vscode?style=for-the-badge&logo=visual-studio-code&color=007ACC)](https://marketplace.visualstudio.com/items?itemName=TanvirSdq.codefunc-vscode)
-[![Marketplace Installs](https://img.shields.io/visual-studio-marketplace/d/TanvirSdq.codefunc-vscode?style=for-the-badge&color=brightgreen)](https://marketplace.visualstudio.com/items?itemName=TanvirSdq.codefunc-vscode)
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/agpl-3.0)
+[![VS Code Marketplace Version](https://vsmarketplacebadges.dev/version-short/TanvirSdq.codefunc-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=TanvirSdq.codefunc-vscode)
+[![Marketplace Installs](https://vsmarketplacebadges.dev/downloads-short/TanvirSdq.codefunc-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=TanvirSdq.codefunc-vscode)
+[![Marketplace Rating](https://vsmarketplacebadges.dev/rating-short/TanvirSdq.codefunc-vscode.svg)](https://marketplace.visualstudio.com/items?itemName=TanvirSdq.codefunc-vscode)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 </div>
 
