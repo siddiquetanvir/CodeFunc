@@ -128,10 +128,10 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
 3. Open any file (Python, TypeScript, Dockerfile, YAML, etc.)—**CodeFunc is active immediately!**
 
 #### Option 2: From `.vsix` Release
-1. Download `codefunc-vscode-1.0.2.vsix` from the [Releases](https://github.com/siddiquetanvir/CodeFunc/releases) tab.
+1. Download `codefunc-vscode-1.0.3.vsix` from the [Releases](https://github.com/siddiquetanvir/CodeFunc/releases) tab.
 2. Install via command line:
    ```bash
-   code --install-extension codefunc-vscode-1.0.1.vsix
+   code --install-extension codefunc-vscode-1.0.3.vsix
    ```
 
 ---
@@ -147,7 +147,7 @@ You can run CodeFunc directly inside Google Chrome, Brave, Microsoft Edge, Arc, 
 </p>
 
 #### Method 1: Using Pre-Packaged Release (No Node.js Required)
-1. Download [`codefunc-chrome-v1.0.1.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from GitHub Releases (or locate it in `packages/chrome-extension/codefunc-chrome-v1.0.1.zip`).
+1. Download [`codefunc-chrome-v1.0.3.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from GitHub Releases (or locate it in `packages/chrome-extension/codefunc-chrome-v1.0.3.zip`).
 2. Unzip the `.zip` file to any folder on your computer.
 3. Open your browser and navigate to:
    - **Chrome / Brave / Arc**: `chrome://extensions`
