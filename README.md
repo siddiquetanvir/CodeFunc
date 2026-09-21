@@ -18,9 +18,10 @@
 ## 💡 What is CodeFunc?
 
 When exploring open-source repositories, onboarding onto large codebases, or reviewing unfamiliar pull requests, developers spend cognitive energy reading hundreds of lines just to answer basic questions:
-- *What is the primary responsibility of this file?*
-- *What external services, libraries, or base images does it invoke?*
-- *What ports, databases, files, or network endpoints are touched?*
+
+- _What is the primary responsibility of this file?_
+- _What external services, libraries, or base images does it invoke?_
+- _What ports, databases, files, or network endpoints are touched?_
 
 **CodeFunc solves this directly at Line 0.** It automatically places a crisp, lightweight **CodeLens glance header** at the top of every file you open—requiring zero clicks, zero prompt typing, and zero side-panel distraction.
 
@@ -44,7 +45,9 @@ Clicking **`[📖 Detailed Overview]`** launches a dedicated **glassmorphic side
 ## ✨ Key Highlights
 
 ### ⚡ 1. Universal File Intelligence (v1.0.0)
+
 CodeFunc isn't just for programming languages—it now delivers rich structural overviews across your entire DevOps and infrastructure stack:
+
 - 🐳 **Dockerfiles**: Automatically extracts base images, multi-stage build pipelines, exposed ports, and container entrypoint commands (`CMD` / `ENTRYPOINT`).
 - 🐙 **Docker Compose (`docker-compose.yml`)**: Identifies orchestrated services, backing container images, port forwarding bindings, and volume mounts.
 - ⚙️ **CI/CD Pipelines (GitHub Actions)**: Analyzes workflow triggers, jobs, and shared actions (`actions/checkout`, `setup-node`, etc.).
@@ -56,6 +59,7 @@ CodeFunc isn't just for programming languages—it now delivers rich structural 
 ---
 
 ### 🛡️ 2. Intelligent Offline Fallback (Zero Config, 100% Free & Private)
+
 - **Works instantly out-of-the-box**: No API key or account needed.
 - **Privacy-first**: For non-technical users or enterprise environments with strict security policies, CodeFunc runs a sophisticated local static analysis engine that extracts key mechanisms, patterns, dependencies, and I/O completely on-device.
 - **Zero latency**: Local summaries render in **< 5 milliseconds** with 0 network calls.
@@ -69,19 +73,22 @@ CodeFunc isn't just for programming languages—it now delivers rich structural 
 ---
 
 ### 🧠 3. Multi-Provider AI Superpowers
+
 Bring your favorite LLM provider for deep, human-like architectural summaries. CodeFunc automatically detects your key on paste:
 
-| Provider | Supported API Keys | Recommended Default Model | Description |
-|---|---|---|---|
-| **Google Gemini** | `AQ...` / `AIzaSy...` | `gemini-3.6-flash` | Uses Google's latest official **Interactions API** with structured JSON output. |
-| **Groq** | `gsk_...` | `llama-3.3-70b-versatile` | Blazing-fast inference (500+ tokens/sec) on LPUs, completely free tier available. |
-| **OpenRouter** | `sk-or-...` or `sk-...` | `google/gemini-2.5-flash` / `meta-llama/llama-3.3-70b-instruct` | Unified gateway to hundreds of open-source and commercial foundation models. |
-| **Anthropic** | `sk-ant-...` | `claude-3-5-haiku-latest` | Native Claude Messages API with high analytical precision. |
+| Provider          | Supported API Keys      | Recommended Default Model                                       | Description                                                                       |
+| ----------------- | ----------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Google Gemini** | `AQ...` / `AIzaSy...`   | `gemini-3.6-flash`                                              | Uses Google's latest official **Interactions API** with structured JSON output.   |
+| **Groq**          | `gsk_...`               | `llama-3.3-70b-versatile`                                       | Blazing-fast inference (500+ tokens/sec) on LPUs, completely free tier available. |
+| **OpenRouter**    | `sk-or-...` or `sk-...` | `google/gemini-2.5-flash` / `meta-llama/llama-3.3-70b-instruct` | Unified gateway to hundreds of open-source and commercial foundation models.      |
+| **Anthropic**     | `sk-ant-...`            | `claude-3-5-haiku-latest`                                       | Native Claude Messages API with high analytical precision.                        |
 
 ---
 
 ### 🎨 4. Custom Analysis Personas
+
 Tailor your code lens to your current objective via the `codefunc.persona` setting:
+
 - **General Developer**: Focuses on architectural intent, high-level business logic, and component flow.
 - **Security Auditor**: Highlights sensitive data handling, authentication/authorization layers, network attack surfaces, and untrusted inputs.
 - **Performance Expert**: Spotlights computational complexity (e.g. 2D grid loops, nested iterations), memory allocations, and potential I/O bottlenecks.
@@ -89,6 +96,7 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
 ---
 
 ### ⚡ 5. Performance by Design
+
 - **Cryptographic MD5 Caching**: Unchanged files are hashed and served instantaneously from memory/workspace cache. Zero repeated API calls while editing.
 - **Smart Ignore Filter**: Automatically ignores minified bundles (`*.min.js`, `*.min.css`), lockfiles (`package-lock.json`, `pnpm-lock.yaml`), binary assets (`.png`, `.wasm`, `.pyc`), and vendor folders (`node_modules/`, `.git/`).
 - **Responsive Stacking**: If a summary exceeds your viewport, CodeFunc gracefully splits the content into stacked CodeLens lines so you never experience horizontal scroll overflow.
@@ -111,6 +119,7 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
 ### 🖥️ A. VS Code Extension
 
 #### Option 1: From VS Code Marketplace
+
 1. Open VS Code.
 2. Press `Cmd+P` (macOS) or `Ctrl+P` (Windows/Linux) and run:
    ```bash
@@ -119,6 +128,7 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
 3. Open any file (Python, TypeScript, Dockerfile, YAML, etc.)—**CodeFunc is active immediately!**
 
 #### Option 2: From `.vsix` Release
+
 1. Download `codefunc-vscode-1.0.0.vsix` from the [Releases](https://github.com/siddiquetanvir/CodeFunc/releases) tab.
 2. Install via command line:
    ```bash
@@ -138,6 +148,7 @@ You can run CodeFunc directly inside Google Chrome, Brave, Microsoft Edge, Arc, 
 </p>
 
 #### Method 1: Using Pre-Packaged Release (No Node.js Required)
+
 1. Download [`codefunc-chrome-v1.0.0.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from GitHub Releases (or locate it in `packages/chrome-extension/codefunc-chrome-v0.1.0.zip`).
 2. Unzip the `.zip` file to any folder on your computer.
 3. Open your browser and navigate to:
@@ -149,6 +160,7 @@ You can run CodeFunc directly inside Google Chrome, Brave, Microsoft Edge, Arc, 
 7. **That's it!** Open any file on GitHub (e.g. any repository's `Dockerfile`, `.py`, or `.ts`), and CodeFunc will inject the architectural glance header right above the file.
 
 #### Method 2: Building from Source
+
 ```bash
 # 1. Clone the repository
 git clone https://github.com/siddiquetanvir/CodeFunc.git
@@ -169,14 +181,14 @@ npm run build --workspace=packages/chrome-extension
 
 Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`):
 
-| Command | Action |
-|---|---|
-| `CodeFunc: Set AI API Key` | Prompts for your Gemini, Groq, OpenRouter, or Anthropic key and securely stores it in the OS keychain. |
-| `CodeFunc: Clear AI API Key` | Deletes the stored API key and seamlessly transitions back to local offline mode. |
-| `CodeFunc: Refresh File Summary` | Forces re-analysis of the currently active document, bypassing cache. |
-| `CodeFunc: Clear Summary Cache` | Wipes the entire MD5 in-memory and workspace summary cache. |
-| `CodeFunc: Show File Details` | Displays quick overview dialog for the active document. |
-| `CodeFunc: Open Deep Architectural Overview` | Opens the split-screen glassmorphic Webview panel for comprehensive file exploration. |
+| Command                                      | Action                                                                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `CodeFunc: Set AI API Key`                   | Prompts for your Gemini, Groq, OpenRouter, or Anthropic key and securely stores it in the OS keychain. |
+| `CodeFunc: Clear AI API Key`                 | Deletes the stored API key and seamlessly transitions back to local offline mode.                      |
+| `CodeFunc: Refresh File Summary`             | Forces re-analysis of the currently active document, bypassing cache.                                  |
+| `CodeFunc: Clear Summary Cache`              | Wipes the entire MD5 in-memory and workspace summary cache.                                            |
+| `CodeFunc: Show File Details`                | Displays quick overview dialog for the active document.                                                |
+| `CodeFunc: Open Deep Architectural Overview` | Opens the split-screen glassmorphic Webview panel for comprehensive file exploration.                  |
 
 ---
 
@@ -244,11 +256,13 @@ CodeFunc/
 ## 🛠️ Local Development & Testing
 
 ### Prerequisites
+
 - Node.js 18+
 - npm 9+
 - VS Code 1.85+
 
 ### Build and Run Tests
+
 ```bash
 # Clone the repository
 git clone https://github.com/siddiquetanvir/CodeFunc.git
@@ -257,7 +271,7 @@ cd CodeFunc
 # Install dependencies across all workspaces
 npm install
 
-# Run automated tests in @codefunc/core
+# Run automated tests in @codefunc/core/src
 npm test --workspace=packages/core
 
 # Build extension bundle with esbuild
@@ -265,6 +279,7 @@ npm run package --workspace=packages/vscode-extension
 ```
 
 ### Debugging Live in VS Code
+
 1. Open the `CodeFunc` repository folder in VS Code.
 2. Press **`F5`** (or select **Run > Start Debugging**).
 3. A new **Extension Development Host** window will open.
@@ -275,6 +290,7 @@ npm run package --workspace=packages/vscode-extension
 ## 🤝 Contributing
 
 Contributions, issues, and feature ideas are warmly welcome!
+
 1. Fork the repository.
 2. Create your feature branch (`git checkout -b feature/amazing-feature`).
 3. Commit your changes (`git commit -m 'feat: add support for Kubernetes manifests'`).

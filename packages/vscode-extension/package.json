@@ -150,7 +150,6 @@
     "build": "tsc -b",
     "package": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.12.0",
     "@types/vscode": "^1.85.0",

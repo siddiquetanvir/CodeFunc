@@ -1,0 +1,53 @@
+📁 Application Structure:
+
+.
+├── LICENSE
+├── package.json
+├── 📂 packages
+│   ├── 📂 chrome-extension
+│   │   ├── build.js
+│   │   ├── package.json
+│   │   ├── 📂 public
+│   │   │   ├── content.css
+│   │   │   ├── 📂 icons
+│   │   │   │   ├── icon-128.png
+│   │   │   │   ├── icon-16.png
+│   │   │   │   ├── icon-48.png
+│   │   │   ├── manifest.json
+│   │   │   ├── popup.html
+│   │   ├── README.md
+│   │   ├── 📂 src
+│   │   │   ├── background.ts
+│   │   │   ├── content.ts
+│   │   │   ├── popup.ts
+│   ├── 📂 core
+│   │   ├── package.json
+│   │   ├── 📂 src
+│   │   │   ├── gemini.ts
+│   │   │   ├── hash.ts
+│   │   │   ├── index.ts
+│   │   │   ├── package.json.lnk
+│   │   │   ├── parser.ts
+│   │   │   ├── types.ts
+│   │   ├── 📂 tests
+│   │   │   ├── gemini.test.ts
+│   │   │   ├── parser.test.ts
+│   │   ├── tsconfig.json
+│   │   ├── tsconfig.test.json
+│   ├── 📂 vscode-extension
+│   │   ├── LICENSE
+│   │   ├── 📂 media
+│   │   │   ├── logo.png
+│   │   ├── package.json
+│   │   ├── README.md
+│   │   ├── 📂 src
+│   │   │   ├── codelens-provider.ts
+│   │   │   ├── extension.ts
+│   │   │   ├── hover-provider.ts
+│   │   │   ├── overview-panel.ts
+│   │   │   ├── secret-manager.ts
+│   │   │   ├── vs-cache.ts
+│   │   ├── tsconfig.json
+│   │   ├── tsconfig.tsbuildinfo
+├── README.md
+├── tsconfig.json
