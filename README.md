@@ -33,11 +33,17 @@ When exploring open-source repositories, onboarding onto large codebases, or rev
 
 Clicking **`[📖 Detailed Overview]`** launches a dedicated **glassmorphic side panel** with deep architectural diagrams, data flow breakdown, and risk analysis.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/024dd5cd-d8bf-495f-9b2b-999a883988aa" alt="CodeFunc VS Code AI Architectural Overview" width="900" />
+  <br />
+  <em>✨ CodeFunc in VS Code: Zero-click CodeLens glance header paired with the deep AI Architectural Overview panel.</em>
+</p>
+
 ---
 
 ## ✨ Key Highlights
 
-### ⚡ 1. Universal File Intelligence (v0.1.6)
+### ⚡ 1. Universal File Intelligence (v1.0.0)
 CodeFunc isn't just for programming languages—it now delivers rich structural overviews across your entire DevOps and infrastructure stack:
 - 🐳 **Dockerfiles**: Automatically extracts base images, multi-stage build pipelines, exposed ports, and container entrypoint commands (`CMD` / `ENTRYPOINT`).
 - 🐙 **Docker Compose (`docker-compose.yml`)**: Identifies orchestrated services, backing container images, port forwarding bindings, and volume mounts.
@@ -53,6 +59,12 @@ CodeFunc isn't just for programming languages—it now delivers rich structural 
 - **Works instantly out-of-the-box**: No API key or account needed.
 - **Privacy-first**: For non-technical users or enterprise environments with strict security policies, CodeFunc runs a sophisticated local static analysis engine that extracts key mechanisms, patterns, dependencies, and I/O completely on-device.
 - **Zero latency**: Local summaries render in **< 5 milliseconds** with 0 network calls.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a0049c44-d8fa-47c2-9deb-d20e929b3f8d" alt="CodeFunc VS Code Offline Local Inspection" width="900" />
+  <br />
+  <em>🛡️ CodeFunc Offline Mode: Instant heuristic static analysis without sending a single byte outside your machine.</em>
+</p>
 
 ---
 
@@ -107,10 +119,10 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
 3. Open any file (Python, TypeScript, Dockerfile, YAML, etc.)—**CodeFunc is active immediately!**
 
 #### Option 2: From `.vsix` Release
-1. Download `codefunc-vscode-0.1.6.vsix` from the [Releases](https://github.com/siddiquetanvir/CodeFunc/releases) tab.
+1. Download `codefunc-vscode-1.0.0.vsix` from the [Releases](https://github.com/siddiquetanvir/CodeFunc/releases) tab.
 2. Install via command line:
    ```bash
-   code --install-extension codefunc-vscode-0.1.6.vsix
+   code --install-extension codefunc-vscode-1.0.0.vsix
    ```
 
 ---
@@ -119,8 +131,14 @@ Tailor your code lens to your current objective via the `codefunc.persona` setti
 
 You can run CodeFunc directly inside Google Chrome, Brave, Microsoft Edge, Arc, or Opera to get instant file overviews while browsing GitHub repositories:
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/bfb3a770-0049-41d7-85d2-92ff9901ca43" alt="CodeFunc Chrome Extension Overview on GitHub" width="900" />
+  <br />
+  <em>🌐 CodeFunc for GitHub: Passive architectural glance banner injected right above file content in your browser.</em>
+</p>
+
 #### Method 1: Using Pre-Packaged Release (No Node.js Required)
-1. Download [`codefunc-chrome-v0.1.0.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from GitHub Releases (or locate it in `packages/chrome-extension/codefunc-chrome-v0.1.0.zip`).
+1. Download [`codefunc-chrome-v1.0.0.zip`](https://github.com/siddiquetanvir/CodeFunc/releases) from GitHub Releases (or locate it in `packages/chrome-extension/codefunc-chrome-v0.1.0.zip`).
 2. Unzip the `.zip` file to any folder on your computer.
 3. Open your browser and navigate to:
    - **Chrome / Brave / Arc**: `chrome://extensions`

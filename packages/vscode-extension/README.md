@@ -32,11 +32,17 @@ When exploring unfamiliar open-source codebases, reviewing team pull requests, o
 
 Clicking **`[📖 Detailed Overview]`** launches a dedicated **glassmorphic side panel** with deep architectural diagrams, data flow breakdown, and risk analysis.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/024dd5cd-d8bf-495f-9b2b-999a883988aa" alt="CodeFunc VS Code AI Architectural Overview" width="900" />
+  <br />
+  <em>✨ CodeFunc in VS Code: Zero-click CodeLens glance header paired with the deep AI Architectural Overview panel.</em>
+</p>
+
 ---
 
 ## ✨ Key Highlights
 
-### ⚡ 1. Universal File Intelligence (v0.1.6)
+### ⚡ 1. Universal File Intelligence (v1.0.0)
 CodeFunc isn't just for programming languages—it now delivers rich structural overviews across your entire DevOps and infrastructure stack:
 - 🐳 **Dockerfiles**: Automatically extracts base images, multi-stage build pipelines, exposed ports, and container entrypoint commands (`CMD` / `ENTRYPOINT`).
 - 🐙 **Docker Compose (`docker-compose.yml`)**: Identifies orchestrated services, backing container images, port forwarding bindings, and volume mounts.
@@ -52,6 +58,12 @@ CodeFunc isn't just for programming languages—it now delivers rich structural 
 - **Works instantly out-of-the-box**: No API key or account needed.
 - **Privacy-first**: For non-technical users or enterprise environments with strict security policies, CodeFunc runs a sophisticated local static analysis engine that extracts key mechanisms, patterns, dependencies, and I/O completely on-device.
 - **Zero latency**: Local summaries render in **< 5 milliseconds** with 0 network calls.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a0049c44-d8fa-47c2-9deb-d20e929b3f8d" alt="CodeFunc VS Code Offline Local Inspection" width="900" />
+  <br />
+  <em>🛡️ CodeFunc Offline Mode: Instant heuristic static analysis without sending a single byte outside your machine.</em>
+</p>
 
 ---
 
